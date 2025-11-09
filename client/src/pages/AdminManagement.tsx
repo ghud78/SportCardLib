@@ -56,6 +56,12 @@ export default function AdminManagement() {
   const [seriesName, setSeriesName] = useState("");
   const [seriesBrandId, setSeriesBrandId] = useState<number | null>(null);
 
+  // Subseries state
+  const [subseriesDialogOpen, setSubseriesDialogOpen] = useState(false);
+  const [editingSubseries, setEditingSubseries] = useState<{ id: number; name: string; seriesId: number | null } | null>(null);
+  const [subseriesName, setSubseriesName] = useState("");
+  const [subseriesSeriesId, setSubseriesSeriesId] = useState<number | null>(null);
+
   // Specialty state
   const [specialtyDialogOpen, setSpecialtyDialogOpen] = useState(false);
   const [editingSpecialty, setEditingSpecialty] = useState<{ id: number; name: string } | null>(null);
@@ -67,6 +73,10 @@ export default function AdminManagement() {
   });
 
   const { data: series, isLoading: seriesLoading } = trpc.series.list.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+
+  const { data: subseries, isLoading: subseriesLoading } = trpc.subseries.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
@@ -146,6 +156,44 @@ export default function AdminManagement() {
     },
   });
 
+  // Subseries mutations
+  const createSubseriesMutation = trpc.subseries.create.useMutation({
+    onSuccess: () => {
+      utils.subseries.list.invalidate();
+      toast.success("Subseries created successfully");
+      setSubseriesDialogOpen(false);
+      setSubseriesName("");
+      setSubseriesSeriesId(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create subseries");
+    },
+  });
+
+  const updateSubseriesMutation = trpc.subseries.update.useMutation({
+    onSuccess: () => {
+      utils.subseries.list.invalidate();
+      toast.success("Subseries updated successfully");
+      setSubseriesDialogOpen(false);
+      setEditingSubseries(null);
+      setSubseriesName("");
+      setSubseriesSeriesId(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update subseries");
+    },
+  });
+
+  const deleteSubseriesMutation = trpc.subseries.delete.useMutation({
+    onSuccess: () => {
+      utils.subseries.list.invalidate();
+      toast.success("Subseries deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete subseries");
+    },
+  });
+
   // Specialty mutations
   const createSpecialtyMutation = trpc.specialties.create.useMutation({
     onSuccess: () => {
@@ -206,6 +254,19 @@ export default function AdminManagement() {
       updateSeriesMutation.mutate({ id: editingSeries.id, name: seriesName.trim(), brandId: seriesBrandId });
     } else {
       createSeriesMutation.mutate({ name: seriesName.trim(), brandId: seriesBrandId });
+    }
+  };
+
+  const handleSubseriesSubmit = () => {
+    if (!subseriesName.trim()) {
+      toast.error("Subseries name is required");
+      return;
+    }
+
+    if (editingSubseries) {
+      updateSubseriesMutation.mutate({ id: editingSubseries.id, name: subseriesName.trim(), seriesId: subseriesSeriesId });
+    } else {
+      createSubseriesMutation.mutate({ name: subseriesName.trim(), seriesId: subseriesSeriesId });
     }
   };
 
@@ -283,9 +344,10 @@ export default function AdminManagement() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="brands">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="brands">Brands</TabsTrigger>
                 <TabsTrigger value="series">Series</TabsTrigger>
+                <TabsTrigger value="subseries">Subseries</TabsTrigger>
                 <TabsTrigger value="specialties">Specialties</TabsTrigger>
               </TabsList>
 
@@ -410,6 +472,78 @@ export default function AdminManagement() {
                                   }
                                 }}
                                 disabled={deleteSeriesMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+
+              {/* Subseries Tab */}
+              <TabsContent value="subseries" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Subseries</h3>
+                  <Button
+                    onClick={() => {
+                      setEditingSubseries(null);
+                      setSubseriesName("");
+                      setSubseriesSeriesId(null);
+                      setSubseriesDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Subseries
+                  </Button>
+                </div>
+
+                {subseriesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Series</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subseries?.map((sub) => (
+                        <TableRow key={sub.id}>
+                          <TableCell className="font-medium">{sub.name}</TableCell>
+                          <TableCell>
+                            {sub.seriesId ? series?.find(s => s.id === sub.seriesId)?.name || "Unknown" : "None"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingSubseries(sub);
+                                  setSubseriesName(sub.name);
+                                  setSubseriesSeriesId(sub.seriesId);
+                                  setSubseriesDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm(`Delete subseries "${sub.name}"?`)) {
+                                    deleteSubseriesMutation.mutate({ id: sub.id });
+                                  }
+                                }}
+                                disabled={deleteSubseriesMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -579,6 +713,66 @@ export default function AdminManagement() {
               disabled={createSeriesMutation.isPending || updateSeriesMutation.isPending}
             >
               {createSeriesMutation.isPending || updateSeriesMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subseries Dialog */}
+      <Dialog open={subseriesDialogOpen} onOpenChange={setSubseriesDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingSubseries ? "Edit Subseries" : "Add Subseries"}</DialogTitle>
+            <DialogDescription>
+              {editingSubseries ? "Update the subseries details" : "Create a new subseries"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="subseriesName">Subseries Name</Label>
+              <Input
+                id="subseriesName"
+                value={subseriesName}
+                onChange={(e) => setSubseriesName(e.target.value)}
+                placeholder="e.g., Silver, Gold, Base"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subseriesSeries">Series (Optional)</Label>
+              <Select
+                value={subseriesSeriesId?.toString() || ""}
+                onValueChange={(value) => setSubseriesSeriesId(value ? parseInt(value) : null)}
+              >
+                <SelectTrigger id="subseriesSeries">
+                  <SelectValue placeholder="Select series" />
+                </SelectTrigger>
+                <SelectContent>
+                  {series?.map((s) => (
+                    <SelectItem key={s.id} value={s.id.toString()}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubseriesDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubseriesSubmit}
+              disabled={createSubseriesMutation.isPending || updateSubseriesMutation.isPending}
+            >
+              {createSubseriesMutation.isPending || updateSubseriesMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...

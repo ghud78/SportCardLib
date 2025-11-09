@@ -98,6 +98,7 @@ export const appRouter = router({
           playerName: z.string().min(1, "Player name is required"),
           brandId: z.number().nullable().optional(),
           seriesId: z.number().nullable().optional(),
+          subseriesId: z.number().nullable().optional(),
           specialtyId: z.number().nullable().optional(),
           season: z.string().min(1, "Season is required"),
           cardNumber: z.string().min(1, "Card number is required"),
@@ -124,9 +125,10 @@ export const appRouter = router({
       .input(
         z.object({
           id: z.number(),
-          playerName: z.string().min(1).optional(),
+          playerName: z.string().min(1),
           brandId: z.number().nullable().optional(),
           seriesId: z.number().nullable().optional(),
+          subseriesId: z.number().nullable().optional(),
           specialtyId: z.number().nullable().optional(),
           season: z.string().min(1).optional(),
           cardNumber: z.string().min(1).optional(),
@@ -226,6 +228,33 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const { deleteSeries } = await import("./db");
         await deleteSeries(input.id);
+        return { success: true };
+      }),
+  }),
+
+  subseries: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllSubseries } = await import("./db");
+      return getAllSubseries();
+    }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1), seriesId: z.number().nullable() }))
+      .mutation(async ({ input }) => {
+        const { createSubseries } = await import("./db");
+        return createSubseries(input.name, input.seriesId);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1), seriesId: z.number().nullable() }))
+      .mutation(async ({ input }) => {
+        const { updateSubseries } = await import("./db");
+        await updateSubseries(input.id, input.name, input.seriesId);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteSubseries } = await import("./db");
+        await deleteSubseries(input.id);
         return { success: true };
       }),
   }),

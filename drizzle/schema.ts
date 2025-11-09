@@ -49,6 +49,7 @@ export const cards = mysqlTable("cards", {
   playerName: varchar("playerName", { length: 255 }).notNull(),
   brandId: int("brandId"),
   seriesId: int("seriesId"),
+  subseriesId: int("subseriesId"),
   specialtyId: int("specialtyId"),
   season: varchar("season", { length: 50 }).notNull(), // e.g., "1998-99" or "2014-15"
   cardNumber: varchar("cardNumber", { length: 100 }).notNull(), // e.g., "214" or "ST-XYZ"
@@ -91,8 +92,21 @@ export type Series = typeof series.$inferSelect;
 export type InsertSeries = typeof series.$inferInsert;
 
 /**
- * Specialties table - admin-managed list of card specialties
+ * Subseries table - admin-managed list of card subseries (1:n with series)
  */
+export const subseries = mysqlTable("subseries", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  seriesId: int("seriesId").references(() => series.id, { onDelete: "cascade" }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Subseries = typeof subseries.$inferSelect;
+export type InsertSubseries = typeof subseries.$inferInsert;
+
+/**
+ * Specialties table - admin-managed list of card specialties
+*/
 export const specialties = mysqlTable("specialties", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull().unique(),

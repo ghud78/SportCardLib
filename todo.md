@@ -85,3 +85,11 @@
 - [x] Set "Base" as default specialty value
 - [x] Rename "Season" field to "Season / Year"
 - [x] Update existing series data with brand associations
+
+## Subseries Feature (1:n with Series)
+- [x] Create subseries table with seriesId foreign key
+- [x] Add subseriesId to cards table
+- [x] Implement subseries CRUD backend procedures (admin only)
+- [x] Add Subseries tab to Admin Panel
+- [x] Update card forms with subseries field
+- [x] Implement cascade filtering: series selection filters subseries options

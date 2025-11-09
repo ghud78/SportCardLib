@@ -35,6 +35,7 @@ export default function AddCard() {
   const [brandId, setBrandId] = useState<number | null>(null);
   const [previousBrandId, setPreviousBrandId] = useState<number | null>(null);
   const [seriesId, setSeriesId] = useState<number | null>(null);
+  const [subseriesId, setSubseriesId] = useState<number | null>(null);
   const [specialtyId, setSpecialtyId] = useState<number | null>(null);
   const [season, setSeason] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -55,14 +56,19 @@ export default function AddCard() {
     enabled: isAuthenticated,
   });
 
-  const { data: allSeries } = trpc.series.list.useQuery(undefined, {
+   const { data: series } = trpc.series.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
-  // Filter series by selected brand
-  const filteredSeries = brandId
-    ? allSeries?.filter((s) => s.brandId === brandId)
-    : allSeries;
+  const { data: subseries } = trpc.subseries.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+    // Filter series by selected brand
+  const filteredSeries = series?.filter((s) => !s.brandId || s.brandId === brandId);
+
+  // Filter subseries by selected series
+  const filteredSubseries = subseries?.filter((sub) => !sub.seriesId || sub.seriesId === seriesId);
 
   const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -134,6 +140,7 @@ export default function AddCard() {
       playerName: playerName.trim(),
       brandId: brandId || undefined,
       seriesId: seriesId || undefined,
+      subseriesId: subseriesId || undefined,
       specialtyId: specialtyId || undefined,
       season: season.trim(),
       cardNumber: cardNumber.trim(),
@@ -249,7 +256,16 @@ export default function AddCard() {
 
                 <div className="space-y-2">
                   <Label htmlFor="series">Series (Optional)</Label>
-                  <Select value={seriesId?.toString()} onValueChange={(v) => setSeriesId(v ? parseInt(v) : null)}>
+                  <Select
+                    value={seriesId?.toString()}
+                    onValueChange={(v) => {
+                      const newSeriesId = v ? parseInt(v) : null;
+                      if (newSeriesId !== seriesId) {
+                        setSubseriesId(null);
+                      }
+                      setSeriesId(newSeriesId);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder={brandId ? "Select series (optional)" : "Select brand first"} />
                     </SelectTrigger>
@@ -257,6 +273,22 @@ export default function AddCard() {
                       {filteredSeries?.map((s) => (
                         <SelectItem key={s.id} value={s.id.toString()}>
                           {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="subseries">Subseries (Optional)</Label>
+                  <Select value={subseriesId?.toString()} onValueChange={(v) => setSubseriesId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={seriesId ? "Select subseries (optional)" : "Select series first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredSubseries?.map((sub) => (
+                        <SelectItem key={sub.id} value={sub.id.toString()}>
+                          {sub.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
