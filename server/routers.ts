@@ -107,8 +107,11 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const { searchCardImages } = await import("./searchCardImages");
-        const imageUrls = await searchCardImages(input);
-        return { imageUrls, searchQuery: `${input.season} ${input.brandName || ''} ${input.seriesName || ''} ${input.playerName} #${input.cardNumber}`.trim() };
+        const result = await searchCardImages(input);
+        return {
+          imageUrls: result.imageUrls,
+          debugInfo: result.debugInfo,
+        };
       }),
     listByCollection: protectedProcedure
       .input(z.object({ collectionId: z.number() }))

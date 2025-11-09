@@ -123,3 +123,8 @@
 
 ## Image Search Improvement
 - [x] Implement fallback search strategy (simpler query if detailed search fails)
+
+## Image Search Debug
+- [x] Add debug logging to backend search
+- [x] Return debug info (queries, endpoint, results) from backend
+- [x] Display debug information in UI dialog

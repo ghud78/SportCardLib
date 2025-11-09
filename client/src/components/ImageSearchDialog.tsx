@@ -9,11 +9,20 @@ import {
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
+interface SearchDebugInfo {
+  detailedQuery: string;
+  fallbackQuery?: string;
+  apiEndpoint: string;
+  detailedResults: number;
+  fallbackResults?: number;
+  rawResponse?: any;
+}
+
 interface ImageSearchDialogProps {
   open: boolean;
   onClose: () => void;
   imageUrls: string[];
-  searchQuery: string;
+  debugInfo: SearchDebugInfo | null;
   onSelectFront: (url: string) => void;
   onSelectBack: (url: string) => void;
 }
@@ -22,13 +31,14 @@ export function ImageSearchDialog({
   open,
   onClose,
   imageUrls,
-  searchQuery,
+  debugInfo,
   onSelectFront,
   onSelectBack,
 }: ImageSearchDialogProps) {
   const [selectedForFront, setSelectedForFront] = useState<string | null>(null);
   const [selectedForBack, setSelectedForBack] = useState<string | null>(null);
   const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
+  const [showDebug, setShowDebug] = useState(false);
 
   const handleImageLoad = (url: string) => {
     setLoadingImages((prev) => {
@@ -62,15 +72,62 @@ export function ImageSearchDialog({
         <DialogHeader>
           <DialogTitle>Select Card Images</DialogTitle>
           <DialogDescription>
-            Search results for: <span className="font-semibold">{searchQuery}</span>
-            <br />
-            Click an image to set it as front or back. Found {imageUrls.length} result{imageUrls.length !== 1 ? 's' : ''}.
+            Found {imageUrls.length} result{imageUrls.length !== 1 ? 's' : ''}.
+            {debugInfo && (
+              <Button
+                variant="link"
+                size="sm"
+                className="ml-2 h-auto p-0"
+                onClick={() => setShowDebug(!showDebug)}
+              >
+                {showDebug ? "Hide" : "Show"} Debug Info
+              </Button>
+            )}
           </DialogDescription>
         </DialogHeader>
 
+        {showDebug && debugInfo && (
+          <div className="mb-4 p-4 bg-muted rounded-lg text-sm font-mono space-y-2">
+            <div>
+              <strong>API Endpoint:</strong> {debugInfo.apiEndpoint}
+            </div>
+            <div>
+              <strong>Detailed Query:</strong> "{debugInfo.detailedQuery}"
+            </div>
+            <div>
+              <strong>Detailed Results:</strong> {debugInfo.detailedResults}
+            </div>
+            {debugInfo.fallbackQuery && (
+              <>
+                <div>
+                  <strong>Fallback Query:</strong> "{debugInfo.fallbackQuery}"
+                </div>
+                <div>
+                  <strong>Fallback Results:</strong> {debugInfo.fallbackResults}
+                </div>
+              </>
+            )}
+            {debugInfo.rawResponse && (
+              <details className="mt-2">
+                <summary className="cursor-pointer font-semibold">Raw API Response</summary>
+                <pre className="mt-2 p-2 bg-background rounded overflow-x-auto text-xs">
+                  {JSON.stringify(debugInfo.rawResponse, null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
+        )}
+
         {imageUrls.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No images found. Try uploading manually instead.
+            <p className="mb-2">No images found.</p>
+            {debugInfo && (
+              <p className="text-sm">
+                Searched: "{debugInfo.detailedQuery}"
+                {debugInfo.fallbackQuery && ` and "${debugInfo.fallbackQuery}"`}
+              </p>
+            )}
+            <p className="mt-2">Try uploading manually instead.</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4">

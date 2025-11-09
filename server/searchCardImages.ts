@@ -14,7 +14,21 @@ interface CardSearchParams {
   numberedOf?: number;
 }
 
-export async function searchCardImages(params: CardSearchParams): Promise<string[]> {
+export interface SearchDebugInfo {
+  detailedQuery: string;
+  fallbackQuery?: string;
+  apiEndpoint: string;
+  detailedResults: number;
+  fallbackResults?: number;
+  rawResponse?: any;
+}
+
+export interface SearchResult {
+  imageUrls: string[];
+  debugInfo: SearchDebugInfo;
+}
+
+export async function searchCardImages(params: CardSearchParams): Promise<SearchResult> {
   // Build smart search query
   const queryParts: string[] = [];
 
@@ -58,10 +72,20 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
   }
 
   const searchQuery = queryParts.join(" ");
+  const apiEndpoint = `${ENV.forgeApiUrl}/omni_search`;
+
+  const debugInfo: SearchDebugInfo = {
+    detailedQuery: searchQuery,
+    apiEndpoint,
+    detailedResults: 0,
+  };
 
   // Helper function to perform search
-  const performSearch = async (query: string): Promise<string[]> => {
-    const response = await fetch(`${ENV.forgeApiUrl}/omni_search`, {
+  const performSearch = async (query: string): Promise<{ urls: string[]; rawData: any }> => {
+    console.log(`[Image Search] Searching: "${query}"`);
+    console.log(`[Image Search] Endpoint: ${apiEndpoint}`);
+
+    const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,10 +98,12 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
     });
 
     if (!response.ok) {
+      console.error(`[Image Search] HTTP Error: ${response.status} ${response.statusText}`);
       throw new Error(`Search failed: ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log(`[Image Search] Raw response:`, JSON.stringify(data, null, 2));
     
     // Extract image URLs from results (limit to 9)
     const imageUrls: string[] = [];
@@ -89,15 +115,22 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
       }
     }
 
-    return imageUrls;
+    console.log(`[Image Search] Found ${imageUrls.length} images`);
+
+    return { urls: imageUrls, rawData: data };
   };
 
   try {
     // Try detailed search first
-    let imageUrls = await performSearch(searchQuery);
+    const detailedResult = await performSearch(searchQuery);
+    let imageUrls = detailedResult.urls;
+    debugInfo.detailedResults = imageUrls.length;
+    debugInfo.rawResponse = detailedResult.rawData;
 
     // If no results, try simpler fallback query
     if (imageUrls.length === 0) {
+      console.log("[Image Search] No results with detailed query, trying fallback...");
+      
       const fallbackParts: string[] = [];
       
       // Season
@@ -120,12 +153,20 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
       fallbackParts.push(`#${params.cardNumber}`);
       
       const fallbackQuery = fallbackParts.join(" ");
-      imageUrls = await performSearch(fallbackQuery);
+      debugInfo.fallbackQuery = fallbackQuery;
+
+      const fallbackResult = await performSearch(fallbackQuery);
+      imageUrls = fallbackResult.urls;
+      debugInfo.fallbackResults = imageUrls.length;
+      debugInfo.rawResponse = fallbackResult.rawData;
     }
 
-    return imageUrls;
+    return {
+      imageUrls,
+      debugInfo,
+    };
   } catch (error) {
-    console.error("Card image search error:", error);
-    throw new Error("Failed to search for card images");
+    console.error("[Image Search] Error:", error);
+    throw new Error(`Failed to search for card images: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

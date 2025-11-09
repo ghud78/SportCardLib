@@ -51,7 +51,7 @@ export default function EditCard() {
   const [notes, setNotes] = useState("");
   const [showSearchDialog, setShowSearchDialog] = useState(false);
   const [searchResults, setSearchResults] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchDebugInfo, setSearchDebugInfo] = useState<any>(null);
 
   const utils = trpc.useUtils();
 
@@ -112,10 +112,10 @@ export default function EditCard() {
   const searchImagesMutation = trpc.cards.searchImages.useMutation({
     onSuccess: (data) => {
       setSearchResults(data.imageUrls);
-      setSearchQuery(data.searchQuery);
+      setSearchDebugInfo(data.debugInfo);
       setShowSearchDialog(true);
       if (data.imageUrls.length === 0) {
-        toast.error("No images found. Try different search terms or upload manually.");
+        toast.error("No images found. Check debug info for details.");
       }
     },
     onError: (error) => {
@@ -522,7 +522,7 @@ export default function EditCard() {
         open={showSearchDialog}
         onClose={() => setShowSearchDialog(false)}
         imageUrls={searchResults}
-        searchQuery={searchQuery}
+        debugInfo={searchDebugInfo}
         onSelectFront={(url) => {
           setImageFrontUrl(url);
           toast.success("Front image selected");
