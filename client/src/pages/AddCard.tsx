@@ -89,8 +89,8 @@ export default function AddCard() {
       utils.cards.listByCollection.invalidate({ collectionId: collectionId! });
       toast.success("Card added successfully");
       
-      // Reset form but keep brand and series for quick entry
-      setPlayerName("");
+      // Reset form but keep player name and brand for quick entry
+      // setPlayerName(""); - Keep player name
       setSeason("");
       setCardNumber("");
       setSpecialtyId(null);

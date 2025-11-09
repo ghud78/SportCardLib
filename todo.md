@@ -93,3 +93,6 @@
 - [x] Add Subseries tab to Admin Panel
 - [x] Update card forms with subseries field
 - [x] Implement cascade filtering: series selection filters subseries options
+
+## UX Enhancement
+- [x] Keep player name and brand after "Add Card & Continue" for faster bulk entry
