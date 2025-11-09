@@ -96,3 +96,15 @@
 
 ## UX Enhancement
 - [x] Keep player name and brand after "Add Card & Continue" for faster bulk entry
+
+## Collection Classification Feature
+- [x] Create categories table (Basketball, Baseball, F1, Hockey, NFL, etc.)
+- [x] Create collectionTypes table (Player, Series, Subseries, Parallels, Inserts, Bases, RCs, etc.)
+- [x] Add categoryId and collectionTypeId to collections table
+- [x] Implement backend CRUD for categories (admin only)
+- [x] Implement backend CRUD for collection types (admin only)
+- [x] Add Categories tab to Admin Panel
+- [x] Add Collection Types tab to Admin Panel
+- [x] Update collection create/edit forms with category and type selectors
+- [x] Seed initial categories data
+- [x] Seed initial collection types data

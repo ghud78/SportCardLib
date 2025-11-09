@@ -37,6 +37,8 @@ export const appRouter = router({
         z.object({
           name: z.string().min(1, "Name is required"),
           description: z.string().optional(),
+          categoryId: z.number().optional(),
+          collectionTypeId: z.number().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -45,6 +47,8 @@ export const appRouter = router({
           userId: ctx.user.id,
           name: input.name,
           description: input.description,
+          categoryId: input.categoryId,
+          collectionTypeId: input.collectionTypeId,
         });
       }),
     update: protectedProcedure
@@ -53,6 +57,8 @@ export const appRouter = router({
           id: z.number(),
           name: z.string().min(1, "Name is required").optional(),
           description: z.string().optional(),
+          categoryId: z.number().optional(),
+          collectionTypeId: z.number().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -64,6 +70,8 @@ export const appRouter = router({
         await updateCollection(input.id, {
           name: input.name,
           description: input.description,
+          categoryId: input.categoryId,
+          collectionTypeId: input.collectionTypeId,
         });
         return { success: true };
       }),
@@ -282,6 +290,60 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const { deleteSpecialty } = await import("./db");
         await deleteSpecialty(input.id);
+        return { success: true };
+      }),
+  }),
+
+  categories: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllCategories } = await import("./db");
+      return getAllCategories();
+    }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createCategory } = await import("./db");
+        return createCategory(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateCategory } = await import("./db");
+        await updateCategory(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteCategory } = await import("./db");
+        await deleteCategory(input.id);
+        return { success: true };
+      }),
+  }),
+
+  collectionTypes: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllCollectionTypes } = await import("./db");
+      return getAllCollectionTypes();
+    }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createCollectionType } = await import("./db");
+        return createCollectionType(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateCollectionType } = await import("./db");
+        await updateCollectionType(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteCollectionType } = await import("./db");
+        await deleteCollectionType(input.id);
         return { success: true };
       }),
   }),

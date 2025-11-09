@@ -33,6 +33,8 @@ export const collections = mysqlTable("collections", {
   userId: int("userId").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
+  categoryId: int("categoryId"),
+  collectionTypeId: int("collectionTypeId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -106,13 +108,36 @@ export type InsertSubseries = typeof subseries.$inferInsert;
 
 /**
  * Specialties table - admin-managed list of card specialties
-*/
+ */
 export const specialties = mysqlTable("specialties", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull().unique(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Specialty = typeof specialties.$inferSelect;
 export type InsertSpecialty = typeof specialties.$inferInsert;
+
+/**
+ * Categories table - admin-managed list of collection categories (Basketball, Baseball, F1, etc.)
+ */
+export const categories = mysqlTable("categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = typeof categories.$inferInsert;
+
+/**
+ * Collection Types table - admin-managed list of collection types (Player, Series, Parallels, etc.)
+ */
+export const collectionTypes = mysqlTable("collectionTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CollectionType = typeof collectionTypes.$inferSelect;
+export type InsertCollectionType = typeof collectionTypes.$inferInsert;

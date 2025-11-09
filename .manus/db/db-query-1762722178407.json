@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO collectionTypes (name) VALUES \n('Player Collection'), \n('Series Collection'), \n('Subseries Collection'), \n('Parallels'), \n('Inserts'), \n('Base Cards'), \n('Rookie Cards (RCs)'),\n('Autographs'),\n('Memorabilia');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute INSERT INTO collectionTypes (name) VALUES \n('Player Collection'), \n('Series Collection'), \n('Subseries Collection'), \n('Parallels'), \n('Inserts'), \n('Base Cards'), \n('Rookie Cards (RCs)'),\n('Autographs'),\n('Memorabilia');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 64
+}

@@ -19,6 +19,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Loader2, Plus, Trash2, Edit, FolderOpen } from "lucide-react";
 import { useState } from "react";
@@ -33,10 +40,14 @@ export default function Collections() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionDescription, setNewCollectionDescription] = useState("");
+  const [newCategoryId, setNewCategoryId] = useState<number | null>(null);
+  const [newCollectionTypeId, setNewCollectionTypeId] = useState<number | null>(null);
   const [editingCollection, setEditingCollection] = useState<{
     id: number;
     name: string;
     description: string | null;
+    categoryId: number | null;
+    collectionTypeId: number | null;
   } | null>(null);
 
   const utils = trpc.useUtils();
@@ -45,12 +56,22 @@ export default function Collections() {
     { enabled: isAuthenticated }
   );
 
+  const { data: categories } = trpc.categories.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: collectionTypes } = trpc.collectionTypes.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   const createMutation = trpc.collections.create.useMutation({
     onSuccess: () => {
       utils.collections.list.invalidate();
       setCreateDialogOpen(false);
       setNewCollectionName("");
       setNewCollectionDescription("");
+      setNewCategoryId(null);
+      setNewCollectionTypeId(null);
       toast.success("Collection created successfully");
     },
     onError: (error) => {
@@ -88,6 +109,8 @@ export default function Collections() {
     createMutation.mutate({
       name: newCollectionName,
       description: newCollectionDescription || undefined,
+      categoryId: newCategoryId || undefined,
+      collectionTypeId: newCollectionTypeId || undefined,
     });
   };
 
@@ -101,6 +124,8 @@ export default function Collections() {
       id: editingCollection.id,
       name: editingCollection.name,
       description: editingCollection.description || undefined,
+      categoryId: editingCollection.categoryId || undefined,
+      collectionTypeId: editingCollection.collectionTypeId || undefined,
     });
   };
 
@@ -110,8 +135,14 @@ export default function Collections() {
     }
   };
 
-  const openEditDialog = (collection: { id: number; name: string; description: string | null }) => {
-    setEditingCollection(collection);
+  const openEditDialog = (collection: { id: number; name: string; description: string | null; categoryId?: number | null; collectionTypeId?: number | null }) => {
+    setEditingCollection({
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      categoryId: collection.categoryId ?? null,
+      collectionTypeId: collection.collectionTypeId ?? null,
+    });
     setEditDialogOpen(true);
   };
 
@@ -182,6 +213,36 @@ export default function Collections() {
                     onChange={(e) => setNewCollectionDescription(e.target.value)}
                     rows={3}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category (Optional)</Label>
+                  <Select value={newCategoryId?.toString() || ""} onValueChange={(val) => setNewCategoryId(val ? Number(val) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="collectionType">Collection Type (Optional)</Label>
+                  <Select value={newCollectionTypeId?.toString() || ""} onValueChange={(val) => setNewCollectionTypeId(val ? Number(val) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select collection type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {collectionTypes?.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter>
@@ -303,6 +364,52 @@ export default function Collections() {
                     }
                     rows={3}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-category">Category (Optional)</Label>
+                  <Select
+                    value={editingCollection.categoryId?.toString() || ""}
+                    onValueChange={(val) =>
+                      setEditingCollection({
+                        ...editingCollection,
+                        categoryId: val ? Number(val) : null,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-collectionType">Collection Type (Optional)</Label>
+                  <Select
+                    value={editingCollection.collectionTypeId?.toString() || ""}
+                    onValueChange={(val) =>
+                      setEditingCollection({
+                        ...editingCollection,
+                        collectionTypeId: val ? Number(val) : null,
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select collection type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {collectionTypes?.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}

@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO categories (name) VALUES \n('Basketball'), \n('Baseball'), \n('F1'), \n('Hockey'), \n('NFL'), \n('Soccer'), \n('Pokemon'), \n('Magic: The Gathering'),\n('Yu-Gi-Oh!');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute INSERT INTO categories (name) VALUES \n('Basketball'), \n('Baseball'), \n('F1'), \n('Hockey'), \n('NFL'), \n('Soccer'), \n('Pokemon'), \n('Magic: The Gathering'),\n('Yu-Gi-Oh!');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 958
+}

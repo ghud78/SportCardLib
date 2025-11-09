@@ -67,6 +67,16 @@ export default function AdminManagement() {
   const [editingSpecialty, setEditingSpecialty] = useState<{ id: number; name: string } | null>(null);
   const [specialtyName, setSpecialtyName] = useState("");
 
+  // Category state
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<{ id: number; name: string } | null>(null);
+  const [categoryName, setCategoryName] = useState("");
+
+  // Collection Type state
+  const [collectionTypeDialogOpen, setCollectionTypeDialogOpen] = useState(false);
+  const [editingCollectionType, setEditingCollectionType] = useState<{ id: number; name: string } | null>(null);
+  const [collectionTypeName, setCollectionTypeName] = useState("");
+
   // Queries
   const { data: brands, isLoading: brandsLoading } = trpc.brands.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
@@ -81,6 +91,14 @@ export default function AdminManagement() {
   });
 
   const { data: specialties, isLoading: specialtiesLoading } = trpc.specialties.list.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+
+  const { data: categories, isLoading: categoriesLoading } = trpc.categories.list.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+
+  const { data: collectionTypes, isLoading: collectionTypesLoading } = trpc.collectionTypes.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
@@ -230,6 +248,78 @@ export default function AdminManagement() {
     },
   });
 
+  // Category mutations
+  const createCategoryMutation = trpc.categories.create.useMutation({
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      toast.success("Category created successfully");
+      setCategoryDialogOpen(false);
+      setCategoryName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create category");
+    },
+  });
+
+  const updateCategoryMutation = trpc.categories.update.useMutation({
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      toast.success("Category updated successfully");
+      setCategoryDialogOpen(false);
+      setEditingCategory(null);
+      setCategoryName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update category");
+    },
+  });
+
+  const deleteCategoryMutation = trpc.categories.delete.useMutation({
+    onSuccess: () => {
+      utils.categories.list.invalidate();
+      toast.success("Category deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete category");
+    },
+  });
+
+  // Collection Type mutations
+  const createCollectionTypeMutation = trpc.collectionTypes.create.useMutation({
+    onSuccess: () => {
+      utils.collectionTypes.list.invalidate();
+      toast.success("Collection type created successfully");
+      setCollectionTypeDialogOpen(false);
+      setCollectionTypeName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create collection type");
+    },
+  });
+
+  const updateCollectionTypeMutation = trpc.collectionTypes.update.useMutation({
+    onSuccess: () => {
+      utils.collectionTypes.list.invalidate();
+      toast.success("Collection type updated successfully");
+      setCollectionTypeDialogOpen(false);
+      setEditingCollectionType(null);
+      setCollectionTypeName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update collection type");
+    },
+  });
+
+  const deleteCollectionTypeMutation = trpc.collectionTypes.delete.useMutation({
+    onSuccess: () => {
+      utils.collectionTypes.list.invalidate();
+      toast.success("Collection type deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete collection type");
+    },
+  });
+
   // Handlers
   const handleBrandSubmit = () => {
     if (!brandName.trim()) {
@@ -280,6 +370,32 @@ export default function AdminManagement() {
       updateSpecialtyMutation.mutate({ id: editingSpecialty.id, name: specialtyName.trim() });
     } else {
       createSpecialtyMutation.mutate({ name: specialtyName.trim() });
+    }
+  };
+
+  const handleCategorySubmit = () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name is required");
+      return;
+    }
+
+    if (editingCategory) {
+      updateCategoryMutation.mutate({ id: editingCategory.id, name: categoryName.trim() });
+    } else {
+      createCategoryMutation.mutate({ name: categoryName.trim() });
+    }
+  };
+
+  const handleCollectionTypeSubmit = () => {
+    if (!collectionTypeName.trim()) {
+      toast.error("Collection type name is required");
+      return;
+    }
+
+    if (editingCollectionType) {
+      updateCollectionTypeMutation.mutate({ id: editingCollectionType.id, name: collectionTypeName.trim() });
+    } else {
+      createCollectionTypeMutation.mutate({ name: collectionTypeName.trim() });
     }
   };
 
@@ -344,11 +460,13 @@ export default function AdminManagement() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="brands">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="brands">Brands</TabsTrigger>
                 <TabsTrigger value="series">Series</TabsTrigger>
                 <TabsTrigger value="subseries">Subseries</TabsTrigger>
                 <TabsTrigger value="specialties">Specialties</TabsTrigger>
+                <TabsTrigger value="categories">Categories</TabsTrigger>
+                <TabsTrigger value="collectionTypes">Collection Types</TabsTrigger>
               </TabsList>
 
               {/* Brands Tab */}
@@ -621,6 +739,136 @@ export default function AdminManagement() {
                   </Table>
                 )}
               </TabsContent>
+
+              {/* Categories Tab */}
+              <TabsContent value="categories" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Categories</h3>
+                  <Button
+                    onClick={() => {
+                      setEditingCategory(null);
+                      setCategoryName("");
+                      setCategoryDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Category
+                  </Button>
+                </div>
+
+                {categoriesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categories?.map((category) => (
+                        <TableRow key={category.id}>
+                          <TableCell className="font-medium">{category.name}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingCategory(category);
+                                  setCategoryName(category.name);
+                                  setCategoryDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm(`Delete category "${category.name}"?`)) {
+                                    deleteCategoryMutation.mutate({ id: category.id });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+
+              {/* Collection Types Tab */}
+              <TabsContent value="collectionTypes" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Collection Types</h3>
+                  <Button
+                    onClick={() => {
+                      setEditingCollectionType(null);
+                      setCollectionTypeName("");
+                      setCollectionTypeDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Collection Type
+                  </Button>
+                </div>
+
+                {collectionTypesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {collectionTypes?.map((type) => (
+                        <TableRow key={type.id}>
+                          <TableCell className="font-medium">{type.name}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingCollectionType(type);
+                                  setCollectionTypeName(type.name);
+                                  setCollectionTypeDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm(`Delete collection type "${type.name}"?`)) {
+                                    deleteCollectionTypeMutation.mutate({ id: type.id });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -815,6 +1063,90 @@ export default function AdminManagement() {
               disabled={createSpecialtyMutation.isPending || updateSpecialtyMutation.isPending}
             >
               {createSpecialtyMutation.isPending || updateSpecialtyMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Dialog */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? "Edit Category" : "Add Category"}</DialogTitle>
+            <DialogDescription>
+              {editingCategory ? "Update the category name" : "Create a new category (e.g., Basketball, Baseball, F1)"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="categoryName">Category Name</Label>
+              <Input
+                id="categoryName"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                placeholder="e.g., Basketball"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCategorySubmit}
+              disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
+            >
+              {createCategoryMutation.isPending || updateCategoryMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Collection Type Dialog */}
+      <Dialog open={collectionTypeDialogOpen} onOpenChange={setCollectionTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCollectionType ? "Edit Collection Type" : "Add Collection Type"}</DialogTitle>
+            <DialogDescription>
+              {editingCollectionType ? "Update the collection type name" : "Create a new collection type (e.g., Player, Series, Parallels)"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="collectionTypeName">Collection Type Name</Label>
+              <Input
+                id="collectionTypeName"
+                value={collectionTypeName}
+                onChange={(e) => setCollectionTypeName(e.target.value)}
+                placeholder="e.g., Player Collection"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCollectionTypeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCollectionTypeSubmit}
+              disabled={createCollectionTypeMutation.isPending || updateCollectionTypeMutation.isPending}
+            >
+              {createCollectionTypeMutation.isPending || updateCollectionTypeMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...

@@ -105,7 +105,7 @@ export async function getCollectionById(collectionId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function createCollection(data: { userId: number; name: string; description?: string }) {
+export async function createCollection(data: { userId: number; name: string; description?: string; categoryId?: number; collectionTypeId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { collections } = await import("../drizzle/schema");
@@ -113,7 +113,7 @@ export async function createCollection(data: { userId: number; name: string; des
   return result;
 }
 
-export async function updateCollection(collectionId: number, data: { name?: string; description?: string }) {
+export async function updateCollection(collectionId: number, data: { name?: string; description?: string; categoryId?: number; collectionTypeId?: number }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { collections } = await import("../drizzle/schema");
@@ -278,6 +278,64 @@ export async function deleteSpecialty(id: number) {
   if (!db) throw new Error("Database not available");
   const { specialties } = await import("../drizzle/schema");
   await db.delete(specialties).where(eq(specialties.id, id));
+}
+
+// Category helpers
+export async function getAllCategories() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { categories } = await import("../drizzle/schema");
+  return db.select().from(categories);
+}
+
+export async function createCategory(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { categories } = await import("../drizzle/schema");
+  return db.insert(categories).values({ name });
+}
+
+export async function updateCategory(id: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { categories } = await import("../drizzle/schema");
+  await db.update(categories).set({ name }).where(eq(categories.id, id));
+}
+
+export async function deleteCategory(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { categories } = await import("../drizzle/schema");
+  await db.delete(categories).where(eq(categories.id, id));
+}
+
+// Collection Type helpers
+export async function getAllCollectionTypes() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collectionTypes } = await import("../drizzle/schema");
+  return db.select().from(collectionTypes);
+}
+
+export async function createCollectionType(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collectionTypes } = await import("../drizzle/schema");
+  return db.insert(collectionTypes).values({ name });
+}
+
+export async function updateCollectionType(id: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collectionTypes } = await import("../drizzle/schema");
+  await db.update(collectionTypes).set({ name }).where(eq(collectionTypes.id, id));
+}
+
+export async function deleteCollectionType(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collectionTypes } = await import("../drizzle/schema");
+  await db.delete(collectionTypes).where(eq(collectionTypes.id, id));
 }
 
 export async function getAllSubseries() {
