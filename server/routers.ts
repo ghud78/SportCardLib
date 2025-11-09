@@ -209,16 +209,16 @@ export const appRouter = router({
       return getAllSeries();
     }),
     create: adminProcedure
-      .input(z.object({ name: z.string().min(1) }))
+      .input(z.object({ name: z.string().min(1), brandId: z.number().nullable() }))
       .mutation(async ({ input }) => {
         const { createSeries } = await import("./db");
-        return createSeries(input.name);
+        return createSeries(input.name, input.brandId);
       }),
     update: adminProcedure
-      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .input(z.object({ id: z.number(), name: z.string().min(1), brandId: z.number().nullable() }))
       .mutation(async ({ input }) => {
         const { updateSeries } = await import("./db");
-        await updateSeries(input.id, input.name);
+        await updateSeries(input.id, input.name, input.brandId);
         return { success: true };
       }),
     delete: adminProcedure

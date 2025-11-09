@@ -82,9 +82,9 @@ export type InsertBrand = typeof brands.$inferInsert;
  */
 export const series = mysqlTable("series", {
   id: int("id").autoincrement().primaryKey(),
-  name: varchar("name", { length: 255 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  brandId: int("brandId").references(() => brands.id, { onDelete: "cascade" }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Series = typeof series.$inferSelect;

@@ -76,3 +76,12 @@
 ## Bug Fixes
 - [x] Fix Select component empty string error in AddCard form
 - [x] Fix Select component empty string error in EditCard form
+
+## Brand-Series Relationship & Enhancements
+- [x] Add brandId foreign key to series table
+- [x] Update series backend procedures to handle brand relationship
+- [x] Update Admin Panel series management with brand selector
+- [x] Implement cascade filtering: brand selection filters series options
+- [x] Set "Base" as default specialty value
+- [x] Rename "Season" field to "Season / Year"
+- [x] Update existing series data with brand associations

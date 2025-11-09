@@ -18,6 +18,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -45,8 +52,9 @@ export default function AdminManagement() {
 
   // Series state
   const [seriesDialogOpen, setSeriesDialogOpen] = useState(false);
-  const [editingSeries, setEditingSeries] = useState<{ id: number; name: string } | null>(null);
+  const [editingSeries, setEditingSeries] = useState<{ id: number; name: string; brandId: number | null } | null>(null);
   const [seriesName, setSeriesName] = useState("");
+  const [seriesBrandId, setSeriesBrandId] = useState<number | null>(null);
 
   // Specialty state
   const [specialtyDialogOpen, setSpecialtyDialogOpen] = useState(false);
@@ -195,9 +203,9 @@ export default function AdminManagement() {
     }
 
     if (editingSeries) {
-      updateSeriesMutation.mutate({ id: editingSeries.id, name: seriesName.trim() });
+      updateSeriesMutation.mutate({ id: editingSeries.id, name: seriesName.trim(), brandId: seriesBrandId });
     } else {
-      createSeriesMutation.mutate({ name: seriesName.trim() });
+      createSeriesMutation.mutate({ name: seriesName.trim(), brandId: seriesBrandId });
     }
   };
 
@@ -387,6 +395,7 @@ export default function AdminManagement() {
                                 onClick={() => {
                                   setEditingSeries(s);
                                   setSeriesName(s.name);
+                                  setSeriesBrandId(s.brandId);
                                   setSeriesDialogOpen(true);
                                 }}
                               >
@@ -544,6 +553,21 @@ export default function AdminManagement() {
                 placeholder="e.g., Prizm"
                 autoFocus
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seriesBrand">Brand (Optional)</Label>
+              <Select value={seriesBrandId?.toString()} onValueChange={(v) => setSeriesBrandId(v ? parseInt(v) : null)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select brand (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands?.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id.toString()}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

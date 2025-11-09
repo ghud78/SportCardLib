@@ -20,7 +20,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useLocation, useRoute } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -33,6 +33,7 @@ export default function AddCard() {
 
   const [playerName, setPlayerName] = useState("");
   const [brandId, setBrandId] = useState<number | null>(null);
+  const [previousBrandId, setPreviousBrandId] = useState<number | null>(null);
   const [seriesId, setSeriesId] = useState<number | null>(null);
   const [specialtyId, setSpecialtyId] = useState<number | null>(null);
   const [season, setSeason] = useState("");
@@ -54,13 +55,28 @@ export default function AddCard() {
     enabled: isAuthenticated,
   });
 
-  const { data: series } = trpc.series.list.useQuery(undefined, {
+  const { data: allSeries } = trpc.series.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Filter series by selected brand
+  const filteredSeries = brandId
+    ? allSeries?.filter((s) => s.brandId === brandId)
+    : allSeries;
 
   const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+
+  // Set "Base" as default specialty
+  useEffect(() => {
+    if (!specialtyId && specialties) {
+      const baseSpecialty = specialties.find((s) => s.name === "Base");
+      if (baseSpecialty) {
+        setSpecialtyId(baseSpecialty.id);
+      }
+    }
+  }, [specialties, specialtyId]);
 
   const createCardMutation = trpc.cards.create.useMutation({
     onSuccess: () => {
@@ -206,7 +222,18 @@ export default function AddCard() {
 
                 <div className="space-y-2">
                   <Label htmlFor="brand">Brand (Optional)</Label>
-                  <Select value={brandId?.toString()} onValueChange={(v) => setBrandId(v ? parseInt(v) : null)}>
+                  <Select
+                    value={brandId?.toString()}
+                    onValueChange={(v) => {
+                      const newBrandId = v ? parseInt(v) : null;
+                      // Clear series if brand changes
+                      if (newBrandId !== previousBrandId) {
+                        setSeriesId(null);
+                        setPreviousBrandId(newBrandId);
+                      }
+                      setBrandId(newBrandId);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select brand (optional)" />
                     </SelectTrigger>
@@ -224,10 +251,10 @@ export default function AddCard() {
                   <Label htmlFor="series">Series (Optional)</Label>
                   <Select value={seriesId?.toString()} onValueChange={(v) => setSeriesId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select series (optional)" />
+                      <SelectValue placeholder={brandId ? "Select series (optional)" : "Select brand first"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {series?.map((s) => (
+                      {filteredSeries?.map((s) => (
                         <SelectItem key={s.id} value={s.id.toString()}>
                           {s.name}
                         </SelectItem>
@@ -253,7 +280,7 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="season">Season *</Label>
+                  <Label htmlFor="season">Season / Year *</Label>
                   <Input
                     id="season"
                     value={season}

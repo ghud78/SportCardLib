@@ -236,18 +236,18 @@ export async function deleteBrand(id: number) {
   await db.delete(brands).where(eq(brands.id, id));
 }
 
-export async function createSeries(name: string) {
+export async function createSeries(name: string, brandId: number | null) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { series } = await import("../drizzle/schema");
-  return db.insert(series).values({ name });
+  return db.insert(series).values({ name, brandId });
 }
 
-export async function updateSeries(id: number, name: string) {
+export async function updateSeries(id: number, name: string, brandId: number | null) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { series } = await import("../drizzle/schema");
-  await db.update(series).set({ name }).where(eq(series.id, id));
+  await db.update(series).set({ name, brandId }).where(eq(series.id, id));
 }
 
 export async function deleteSeries(id: number) {

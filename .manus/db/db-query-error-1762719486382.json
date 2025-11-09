@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE series ADD COLUMN brandId INT NULL, ADD CONSTRAINT fk_series_brand FOREIGN KEY (brandId) REFERENCES brands(id) ON DELETE CASCADE",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute ALTER TABLE series ADD COLUMN brandId INT NULL, ADD CONSTRAINT fk_series_brand FOREIGN KEY (brandId) REFERENCES brands(id) ON DELETE CASCADE",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1072 (42000) at line 1: Key column 'brandId' doesn't exist in table"
+  ]
+}
