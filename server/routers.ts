@@ -3,6 +3,15 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+
+// Admin-only procedure
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+  }
+  return next({ ctx });
+});
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -87,10 +96,15 @@ export const appRouter = router({
         z.object({
           collectionId: z.number(),
           playerName: z.string().min(1, "Player name is required"),
-          brand: z.string().min(1, "Brand is required"),
+          brandId: z.number().nullable().optional(),
+          seriesId: z.number().nullable().optional(),
+          specialtyId: z.number().nullable().optional(),
           season: z.string().min(1, "Season is required"),
           cardNumber: z.string().min(1, "Card number is required"),
-          series: z.string().min(1, "Series is required"),
+          isAutograph: z.boolean().optional(),
+          isNumbered: z.boolean().optional(),
+          numberedCurrent: z.number().nullable().optional(),
+          numberedOf: z.number().nullable().optional(),
           notes: z.string().optional(),
         })
       )
@@ -100,17 +114,26 @@ export const appRouter = router({
         if (!collection || collection.userId !== ctx.user.id) {
           throw new Error("Collection not found or unauthorized");
         }
-        return createCard(input);
+        return createCard({
+          ...input,
+          isAutograph: input.isAutograph ? 1 : 0,
+          isNumbered: input.isNumbered ? 1 : 0,
+        });
       }),
     update: protectedProcedure
       .input(
         z.object({
           id: z.number(),
           playerName: z.string().min(1).optional(),
-          brand: z.string().min(1).optional(),
+          brandId: z.number().nullable().optional(),
+          seriesId: z.number().nullable().optional(),
+          specialtyId: z.number().nullable().optional(),
           season: z.string().min(1).optional(),
           cardNumber: z.string().min(1).optional(),
-          series: z.string().min(1).optional(),
+          isAutograph: z.boolean().optional(),
+          isNumbered: z.boolean().optional(),
+          numberedCurrent: z.number().nullable().optional(),
+          numberedOf: z.number().nullable().optional(),
           notes: z.string().optional(),
         })
       )
@@ -125,7 +148,14 @@ export const appRouter = router({
           throw new Error("Unauthorized");
         }
         const { id, ...updateData } = input;
-        await updateCard(id, updateData);
+        const processedData: any = { ...updateData };
+        if (updateData.isAutograph !== undefined) {
+          processedData.isAutograph = updateData.isAutograph ? 1 : 0;
+        }
+        if (updateData.isNumbered !== undefined) {
+          processedData.isNumbered = updateData.isNumbered ? 1 : 0;
+        }
+        await updateCard(id, processedData);
         return { success: true };
       }),
     delete: protectedProcedure
@@ -143,14 +173,88 @@ export const appRouter = router({
         await deleteCard(input.id);
         return { success: true };
       }),
-    getUniqueBrands: protectedProcedure.query(async ({ ctx }) => {
-      const { getUniqueBrands } = await import("./db");
-      return getUniqueBrands(ctx.user.id);
+  }),
+
+  // Reference data - accessible to all authenticated users
+  brands: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllBrands } = await import("./db");
+      return getAllBrands();
     }),
-    getUniqueSeries: protectedProcedure.query(async ({ ctx }) => {
-      const { getUniqueSeries } = await import("./db");
-      return getUniqueSeries(ctx.user.id);
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createBrand } = await import("./db");
+        return createBrand(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateBrand } = await import("./db");
+        await updateBrand(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteBrand } = await import("./db");
+        await deleteBrand(input.id);
+        return { success: true };
+      }),
+  }),
+
+  series: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllSeries } = await import("./db");
+      return getAllSeries();
     }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createSeries } = await import("./db");
+        return createSeries(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateSeries } = await import("./db");
+        await updateSeries(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteSeries } = await import("./db");
+        await deleteSeries(input.id);
+        return { success: true };
+      }),
+  }),
+
+  specialties: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllSpecialties } = await import("./db");
+      return getAllSpecialties();
+    }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createSpecialty } = await import("./db");
+        return createSpecialty(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateSpecialty } = await import("./db");
+        await updateSpecialty(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteSpecialty } = await import("./db");
+        await deleteSpecialty(input.id);
+        return { success: true };
+      }),
   }),
 });
 

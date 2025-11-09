@@ -9,6 +9,7 @@ import Collections from "./pages/Collections";
 import CollectionDetail from "./pages/CollectionDetail";
 import AddCard from "./pages/AddCard";
 import EditCard from "./pages/EditCard";
+import AdminManagement from "./pages/AdminManagement";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/collection/:id"} component={CollectionDetail} />
       <Route path={"/collection/:collectionId/card/:cardId/edit"} component={EditCard} />
       <Route path={"/collection/:id/add-card"} component={AddCard} />
+      <Route path={"/admin"} component={AdminManagement} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

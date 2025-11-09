@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO series (name) VALUES ('Prizm'), ('Revolution'), ('Absolute'), ('Hoops'), ('Select'), ('Optic'), ('Donruss'), ('Mosaic'), ('Chronicles'), ('Contenders') ON DUPLICATE KEY UPDATE name=name",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute INSERT INTO series (name) VALUES ('Prizm'), ('Revolution'), ('Absolute'), ('Hoops'), ('Select'), ('Optic'), ('Donruss'), ('Mosaic'), ('Chronicles'), ('Contenders') ON DUPLICATE KEY UPDATE name=name",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 63
+}

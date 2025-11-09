@@ -7,8 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
@@ -25,10 +33,15 @@ export default function EditCard() {
   const cardId = params?.cardId ? parseInt(params.cardId) : null;
 
   const [playerName, setPlayerName] = useState("");
-  const [brand, setBrand] = useState("");
-  const [series, setSeries] = useState("");
+  const [brandId, setBrandId] = useState<number | null>(null);
+  const [seriesId, setSeriesId] = useState<number | null>(null);
+  const [specialtyId, setSpecialtyId] = useState<number | null>(null);
   const [season, setSeason] = useState("");
   const [cardNumber, setCardNumber] = useState("");
+  const [isAutograph, setIsAutograph] = useState(false);
+  const [isNumbered, setIsNumbered] = useState(false);
+  const [numberedCurrent, setNumberedCurrent] = useState("");
+  const [numberedOf, setNumberedOf] = useState("");
   const [notes, setNotes] = useState("");
 
   const utils = trpc.useUtils();
@@ -46,13 +59,30 @@ export default function EditCard() {
     select: (collections) => collections.find((c) => c.id === collectionId),
   });
 
+  const { data: brands } = trpc.brands.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: series } = trpc.series.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
   useEffect(() => {
     if (card) {
       setPlayerName(card.playerName);
-      setBrand(card.brand);
-      setSeries(card.series);
+      setBrandId(card.brandId);
+      setSeriesId(card.seriesId);
+      setSpecialtyId(card.specialtyId);
       setSeason(card.season);
       setCardNumber(card.cardNumber);
+      setIsAutograph(card.isAutograph === 1);
+      setIsNumbered(card.isNumbered === 1);
+      setNumberedCurrent(card.numberedCurrent?.toString() || "");
+      setNumberedOf(card.numberedOf?.toString() || "");
       setNotes(card.notes || "");
     }
   }, [card]);
@@ -81,16 +111,6 @@ export default function EditCard() {
       return;
     }
 
-    if (!brand.trim()) {
-      toast.error("Brand is required");
-      return;
-    }
-
-    if (!series.trim()) {
-      toast.error("Series is required");
-      return;
-    }
-
     if (!season.trim()) {
       toast.error("Season is required");
       return;
@@ -101,13 +121,25 @@ export default function EditCard() {
       return;
     }
 
+    if (isNumbered) {
+      if (!numberedCurrent.trim() || !numberedOf.trim()) {
+        toast.error("Both numbered values are required when card is numbered");
+        return;
+      }
+    }
+
     updateCardMutation.mutate({
       id: cardId,
       playerName: playerName.trim(),
-      brand: brand.trim(),
-      series: series.trim(),
+      brandId: brandId || undefined,
+      seriesId: seriesId || undefined,
+      specialtyId: specialtyId || undefined,
       season: season.trim(),
       cardNumber: cardNumber.trim(),
+      isAutograph,
+      isNumbered,
+      numberedCurrent: isNumbered && numberedCurrent ? parseInt(numberedCurrent) : undefined,
+      numberedOf: isNumbered && numberedOf ? parseInt(numberedOf) : undefined,
       notes: notes.trim() || undefined,
     });
   };
@@ -177,7 +209,7 @@ export default function EditCard() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="playerName">Player Name</Label>
+                  <Label htmlFor="playerName">Player Name *</Label>
                   <Input
                     id="playerName"
                     value={playerName}
@@ -188,24 +220,57 @@ export default function EditCard() {
 
                 <div className="space-y-2">
                   <Label htmlFor="brand">Brand</Label>
-                  <Input
-                    id="brand"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                  />
+                  <Select value={brandId?.toString() || ""} onValueChange={(v) => setBrandId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {brands?.map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="series">Series</Label>
-                  <Input
-                    id="series"
-                    value={series}
-                    onChange={(e) => setSeries(e.target.value)}
-                  />
+                  <Select value={seriesId?.toString() || ""} onValueChange={(v) => setSeriesId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select series" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {series?.map((s) => (
+                        <SelectItem key={s.id} value={s.id.toString()}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="season">Season</Label>
+                  <Label htmlFor="specialty">Specialty</Label>
+                  <Select value={specialtyId?.toString() || ""} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select specialty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {specialties?.map((specialty) => (
+                        <SelectItem key={specialty.id} value={specialty.id.toString()}>
+                          {specialty.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="season">Season *</Label>
                   <Input
                     id="season"
                     value={season}
@@ -214,12 +279,60 @@ export default function EditCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Label htmlFor="cardNumber">Card Number *</Label>
                   <Input
                     id="cardNumber"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="isAutograph"
+                      checked={isAutograph}
+                      onCheckedChange={(checked) => setIsAutograph(checked as boolean)}
+                    />
+                    <Label htmlFor="isAutograph" className="cursor-pointer">
+                      Autograph
+                    </Label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="isNumbered"
+                        checked={isNumbered}
+                        onCheckedChange={(checked) => setIsNumbered(checked as boolean)}
+                      />
+                      <Label htmlFor="isNumbered" className="cursor-pointer">
+                        Numbered
+                      </Label>
+                    </div>
+                    {isNumbered && (
+                      <div className="grid grid-cols-2 gap-4 ml-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="numberedCurrent">Current #</Label>
+                          <Input
+                            id="numberedCurrent"
+                            type="number"
+                            value={numberedCurrent}
+                            onChange={(e) => setNumberedCurrent(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="numberedOf">Of #</Label>
+                          <Input
+                            id="numberedOf"
+                            type="number"
+                            value={numberedOf}
+                            onChange={(e) => setNumberedOf(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">

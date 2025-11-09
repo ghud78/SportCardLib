@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
+import { useLocation } from "wouter";
 
 /**
  * All content in this page are only for example, replace with your own feature implementation
@@ -9,6 +10,7 @@ import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
  */
 export default function Home() {
   const { user, loading, isAuthenticated, logout } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (loading) {
     return (
@@ -29,8 +31,13 @@ export default function Home() {
           </div>
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">Welcome, {user?.name}</span>
-              <Button variant="outline" onClick={logout}>
+              <span className="text-sm text-gray-600">Welcome, {user?.name}</span>
+              {user?.role === 'admin' && (
+                <Button variant="outline" size="sm" onClick={() => setLocation("/admin")}>
+                  Admin Panel
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={logout}>
                 Sign Out
               </Button>
             </div>

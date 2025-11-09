@@ -53,3 +53,22 @@
 - [x] Push code to GitHub
 - [x] Create deployment documentation
 - [x] Test deployed application
+
+## Admin Reference Data Management
+- [x] Create brands table in database
+- [x] Create series table in database
+- [x] Create specialties table in database
+- [x] Add card flags: autograph, numbered (with xx/yyy format)
+- [x] Implement brand CRUD backend procedures (admin only)
+- [x] Implement series CRUD backend procedures (admin only)
+- [x] Implement specialties CRUD backend procedures (admin only)
+- [x] Build admin brands management page
+- [x] Build admin series management page
+- [x] Build admin specialties management page
+- [x] Update card input form with autocomplete for brands/series
+- [x] Add autograph and numbered flags to card form
+- [x] Seed initial brands data
+- [x] Seed initial series data
+- [x] Set current user as admin
+- [x] Test all admin features
+- [x] Test regular user restrictions

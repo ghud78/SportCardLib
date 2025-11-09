@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,8 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Plus, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation, useRoute } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -30,17 +31,17 @@ export default function AddCard() {
   const [, params] = useRoute("/collection/:id/add-card");
   const collectionId = params?.id ? parseInt(params.id) : null;
 
-  // Form state
   const [playerName, setPlayerName] = useState("");
-  const [brand, setBrand] = useState("");
-  const [series, setSeries] = useState("");
+  const [brandId, setBrandId] = useState<number | null>(null);
+  const [seriesId, setSeriesId] = useState<number | null>(null);
+  const [specialtyId, setSpecialtyId] = useState<number | null>(null);
   const [season, setSeason] = useState("");
   const [cardNumber, setCardNumber] = useState("");
+  const [isAutograph, setIsAutograph] = useState(false);
+  const [isNumbered, setIsNumbered] = useState(false);
+  const [numberedCurrent, setNumberedCurrent] = useState("");
+  const [numberedOf, setNumberedOf] = useState("");
   const [notes, setNotes] = useState("");
-
-  // Remember last selections for quick entry
-  const [lastBrand, setLastBrand] = useState("");
-  const [lastSeries, setLastSeries] = useState("");
 
   const utils = trpc.useUtils();
 
@@ -49,39 +50,38 @@ export default function AddCard() {
     select: (collections) => collections.find((c) => c.id === collectionId),
   });
 
-  const { data: existingBrands } = trpc.cards.getUniqueBrands.useQuery(undefined, {
+  const { data: brands } = trpc.brands.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
-  const { data: existingSeries } = trpc.cards.getUniqueSeries.useQuery(undefined, {
+  const { data: series } = trpc.series.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
   const createCardMutation = trpc.cards.create.useMutation({
     onSuccess: () => {
-      // Remember selections for next entry
-      setLastBrand(brand);
-      setLastSeries(series);
-
-      // Reset form but keep brand and series
+      utils.cards.listByCollection.invalidate({ collectionId: collectionId! });
+      toast.success("Card added successfully");
+      
+      // Reset form but keep brand and series for quick entry
       setPlayerName("");
       setSeason("");
       setCardNumber("");
+      setSpecialtyId(null);
+      setIsAutograph(false);
+      setIsNumbered(false);
+      setNumberedCurrent("");
+      setNumberedOf("");
       setNotes("");
-
-      utils.cards.listByCollection.invalidate({ collectionId: collectionId! });
-      toast.success("Card added successfully! Add another card or go back.");
     },
     onError: (error) => {
       toast.error(error.message || "Failed to add card");
     },
   });
-
-  // Auto-fill last selections when component mounts
-  useEffect(() => {
-    if (lastBrand) setBrand(lastBrand);
-    if (lastSeries) setSeries(lastSeries);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,16 +96,6 @@ export default function AddCard() {
       return;
     }
 
-    if (!brand.trim()) {
-      toast.error("Brand is required");
-      return;
-    }
-
-    if (!series.trim()) {
-      toast.error("Series is required");
-      return;
-    }
-
     if (!season.trim()) {
       toast.error("Season is required");
       return;
@@ -116,22 +106,27 @@ export default function AddCard() {
       return;
     }
 
+    if (isNumbered) {
+      if (!numberedCurrent.trim() || !numberedOf.trim()) {
+        toast.error("Both numbered values are required when card is numbered");
+        return;
+      }
+    }
+
     createCardMutation.mutate({
       collectionId,
       playerName: playerName.trim(),
-      brand: brand.trim(),
-      series: series.trim(),
+      brandId: brandId || undefined,
+      seriesId: seriesId || undefined,
+      specialtyId: specialtyId || undefined,
       season: season.trim(),
       cardNumber: cardNumber.trim(),
+      isAutograph,
+      isNumbered,
+      numberedCurrent: isNumbered && numberedCurrent ? parseInt(numberedCurrent) : undefined,
+      numberedOf: isNumbered && numberedOf ? parseInt(numberedOf) : undefined,
       notes: notes.trim() || undefined,
     });
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e as any);
-    }
   };
 
   if (authLoading) {
@@ -160,13 +155,13 @@ export default function AddCard() {
     );
   }
 
-  if (!collectionId) {
+  if (!collectionId || !collection) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
           <CardHeader>
-            <CardTitle>Invalid Collection</CardTitle>
-            <CardDescription>The collection ID is invalid</CardDescription>
+            <CardTitle>Collection Not Found</CardTitle>
+            <CardDescription>The collection you're trying to add to doesn't exist</CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => setLocation("/collections")} className="w-full">
@@ -191,147 +186,155 @@ export default function AddCard() {
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Add Card to Collection</CardTitle>
+              <CardTitle className="text-2xl">Add Card</CardTitle>
               <CardDescription>
-                Adding card to: <strong>{collection?.name}</strong>
-                <br />
-                <span className="text-xs text-muted-foreground mt-1 block">
-                  Press Enter to save and add another card quickly
-                </span>
+                Adding card to: <strong>{collection.name}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Step 1: Player Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="playerName" className="text-base font-semibold">
-                    1. Player Name
-                  </Label>
+                  <Label htmlFor="playerName">Player Name *</Label>
                   <Input
                     id="playerName"
-                    placeholder="e.g., John Stockton"
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    placeholder="e.g., John Stockton"
                     autoFocus
                   />
                 </div>
 
-                {/* Step 2: Brand */}
                 <div className="space-y-2">
-                  <Label htmlFor="brand" className="text-base font-semibold">
-                    2. Brand
-                  </Label>
-                  <div className="flex gap-2">
-                    <Select value={brand} onValueChange={setBrand}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select or type brand..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {existingBrands && existingBrands.length > 0 ? (
-                          existingBrands.map((b) => (
-                            <SelectItem key={b} value={b}>
-                              {b}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="__none__" disabled>
-                            No brands yet
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Input
-                    placeholder="Or type new brand (e.g., Panini, Topps)"
-                    value={brand}
-                    onChange={(e) => setBrand(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                  />
+                  <Label htmlFor="brand">Brand</Label>
+                  <Select value={brandId?.toString() || ""} onValueChange={(v) => setBrandId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {brands?.map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Step 3: Series */}
                 <div className="space-y-2">
-                  <Label htmlFor="series" className="text-base font-semibold">
-                    3. Series
-                  </Label>
-                  <div className="flex gap-2">
-                    <Select value={series} onValueChange={setSeries}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select or type series..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {existingSeries && existingSeries.length > 0 ? (
-                          existingSeries.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="__none__" disabled>
-                            No series yet
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Input
-                    placeholder="Or type new series (e.g., Hoops, Prizm, Revolution)"
-                    value={series}
-                    onChange={(e) => setSeries(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                  />
+                  <Label htmlFor="series">Series</Label>
+                  <Select value={seriesId?.toString() || ""} onValueChange={(v) => setSeriesId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select series" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {series?.map((s) => (
+                        <SelectItem key={s.id} value={s.id.toString()}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Step 4: Season */}
                 <div className="space-y-2">
-                  <Label htmlFor="season" className="text-base font-semibold">
-                    4. Season
-                  </Label>
+                  <Label htmlFor="specialty">Specialty</Label>
+                  <Select value={specialtyId?.toString() || ""} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select specialty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {specialties?.map((specialty) => (
+                        <SelectItem key={specialty.id} value={specialty.id.toString()}>
+                          {specialty.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="season">Season *</Label>
                   <Input
                     id="season"
-                    placeholder="e.g., 1998-99 or 2014-15"
                     value={season}
                     onChange={(e) => setSeason(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    placeholder="e.g., 1998-99 or 2014"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Enter year range (1998-99) or single year (2014)
-                  </p>
                 </div>
 
-                {/* Step 5: Card Number */}
                 <div className="space-y-2">
-                  <Label htmlFor="cardNumber" className="text-base font-semibold">
-                    5. Card Number
-                  </Label>
+                  <Label htmlFor="cardNumber">Card Number *</Label>
                   <Input
                     id="cardNumber"
-                    placeholder="e.g., 214 or ST-XYZ"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    placeholder="e.g., 214 or ST-XYZ"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Enter card number or special identifier
-                  </p>
                 </div>
 
-                {/* Optional: Notes */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="isAutograph"
+                      checked={isAutograph}
+                      onCheckedChange={(checked) => setIsAutograph(checked as boolean)}
+                    />
+                    <Label htmlFor="isAutograph" className="cursor-pointer">
+                      Autograph
+                    </Label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="isNumbered"
+                        checked={isNumbered}
+                        onCheckedChange={(checked) => setIsNumbered(checked as boolean)}
+                      />
+                      <Label htmlFor="isNumbered" className="cursor-pointer">
+                        Numbered
+                      </Label>
+                    </div>
+                    {isNumbered && (
+                      <div className="grid grid-cols-2 gap-4 ml-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="numberedCurrent">Current #</Label>
+                          <Input
+                            id="numberedCurrent"
+                            type="number"
+                            value={numberedCurrent}
+                            onChange={(e) => setNumberedCurrent(e.target.value)}
+                            placeholder="25"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="numberedOf">Of #</Label>
+                          <Input
+                            id="numberedOf"
+                            type="number"
+                            value={numberedOf}
+                            onChange={(e) => setNumberedOf(e.target.value)}
+                            placeholder="99"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-base font-semibold">
-                    Notes (Optional)
-                  </Label>
+                  <Label htmlFor="notes">Notes (Optional)</Label>
                   <Textarea
                     id="notes"
-                    placeholder="Add any additional notes about this card..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
                   />
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
@@ -345,8 +348,8 @@ export default function AddCard() {
                       </>
                     ) : (
                       <>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Card
+                        <Check className="mr-2 h-4 w-4" />
+                        Add Card & Continue
                       </>
                     )}
                   </Button>
@@ -355,16 +358,9 @@ export default function AddCard() {
                     variant="outline"
                     onClick={() => setLocation(`/collection/${collectionId}`)}
                   >
-                    <Check className="mr-2 h-4 w-4" />
                     Done
                   </Button>
                 </div>
-
-                {lastBrand && lastSeries && (
-                  <p className="text-sm text-muted-foreground text-center pt-2">
-                    💡 Brand and Series are remembered from your last entry for quick adding
-                  </p>
-                )}
               </form>
             </CardContent>
           </Card>

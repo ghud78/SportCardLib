@@ -47,10 +47,15 @@ export const cards = mysqlTable("cards", {
   id: int("id").autoincrement().primaryKey(),
   collectionId: int("collectionId").notNull(),
   playerName: varchar("playerName", { length: 255 }).notNull(),
-  brand: varchar("brand", { length: 255 }).notNull(),
+  brandId: int("brandId"),
+  seriesId: int("seriesId"),
+  specialtyId: int("specialtyId"),
   season: varchar("season", { length: 50 }).notNull(), // e.g., "1998-99" or "2014-15"
   cardNumber: varchar("cardNumber", { length: 100 }).notNull(), // e.g., "214" or "ST-XYZ"
-  series: varchar("series", { length: 255 }).notNull(), // e.g., "Hoops", "Prizm", "Revolution"
+  isAutograph: int("isAutograph").default(0).notNull(), // 0 = false, 1 = true
+  isNumbered: int("isNumbered").default(0).notNull(), // 0 = false, 1 = true
+  numberedOf: int("numberedOf"), // Maximum number (e.g., 99 in "25/99")
+  numberedCurrent: int("numberedCurrent"), // Current number (e.g., 25 in "25/99")
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -58,3 +63,42 @@ export const cards = mysqlTable("cards", {
 
 export type Card = typeof cards.$inferSelect;
 export type InsertCard = typeof cards.$inferInsert;
+
+/**
+ * Brands table - admin-managed list of card brands
+ */
+export const brands = mysqlTable("brands", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Brand = typeof brands.$inferSelect;
+export type InsertBrand = typeof brands.$inferInsert;
+
+/**
+ * Series table - admin-managed list of card series
+ */
+export const series = mysqlTable("series", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Series = typeof series.$inferSelect;
+export type InsertSeries = typeof series.$inferInsert;
+
+/**
+ * Specialties table - admin-managed list of card specialties
+ */
+export const specialties = mysqlTable("specialties", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Specialty = typeof specialties.$inferSelect;
+export type InsertSpecialty = typeof specialties.$inferInsert;

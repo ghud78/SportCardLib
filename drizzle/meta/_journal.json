@@ -15,6 +15,13 @@
       "when": 1762716320030,
       "tag": "0001_loud_daredevil",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762717721131,
+      "tag": "0002_foamy_makkari",
+      "breakpoints": true
     }
   ]
 }

@@ -146,10 +146,15 @@ export async function getCardById(cardId: number) {
 export async function createCard(data: {
   collectionId: number;
   playerName: string;
-  brand: string;
+  brandId?: number | null;
+  seriesId?: number | null;
+  specialtyId?: number | null;
   season: string;
   cardNumber: string;
-  series: string;
+  isAutograph?: number;
+  isNumbered?: number;
+  numberedCurrent?: number | null;
+  numberedOf?: number | null;
   notes?: string;
 }) {
   const db = await getDb();
@@ -163,10 +168,15 @@ export async function updateCard(
   cardId: number,
   data: {
     playerName?: string;
-    brand?: string;
+    brandId?: number | null;
+    seriesId?: number | null;
+    specialtyId?: number | null;
     season?: string;
     cardNumber?: string;
-    series?: string;
+    isAutograph?: number;
+    isNumbered?: number;
+    numberedCurrent?: number | null;
+    numberedOf?: number | null;
     notes?: string;
   }
 ) {
@@ -183,27 +193,87 @@ export async function deleteCard(cardId: number) {
   await db.delete(cards).where(eq(cards.id, cardId));
 }
 
-// Get unique values for dropdowns
-export async function getUniqueBrands(userId: number) {
+// Reference data queries
+export async function getAllBrands() {
   const db = await getDb();
   if (!db) return [];
-  const { cards, collections } = await import("../drizzle/schema");
-  const result = await db
-    .selectDistinct({ brand: cards.brand })
-    .from(cards)
-    .innerJoin(collections, eq(cards.collectionId, collections.id))
-    .where(eq(collections.userId, userId));
-  return result.map(r => r.brand);
+  const { brands } = await import("../drizzle/schema");
+  return db.select().from(brands);
 }
 
-export async function getUniqueSeries(userId: number) {
+export async function getAllSeries() {
   const db = await getDb();
   if (!db) return [];
-  const { cards, collections } = await import("../drizzle/schema");
-  const result = await db
-    .selectDistinct({ series: cards.series })
-    .from(cards)
-    .innerJoin(collections, eq(cards.collectionId, collections.id))
-    .where(eq(collections.userId, userId));
-  return result.map(r => r.series);
+  const { series } = await import("../drizzle/schema");
+  return db.select().from(series);
+}
+
+export async function getAllSpecialties() {
+  const db = await getDb();
+  if (!db) return [];
+  const { specialties } = await import("../drizzle/schema");
+  return db.select().from(specialties);
+}
+
+export async function createBrand(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { brands } = await import("../drizzle/schema");
+  return db.insert(brands).values({ name });
+}
+
+export async function updateBrand(id: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { brands } = await import("../drizzle/schema");
+  await db.update(brands).set({ name }).where(eq(brands.id, id));
+}
+
+export async function deleteBrand(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { brands } = await import("../drizzle/schema");
+  await db.delete(brands).where(eq(brands.id, id));
+}
+
+export async function createSeries(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { series } = await import("../drizzle/schema");
+  return db.insert(series).values({ name });
+}
+
+export async function updateSeries(id: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { series } = await import("../drizzle/schema");
+  await db.update(series).set({ name }).where(eq(series.id, id));
+}
+
+export async function deleteSeries(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { series } = await import("../drizzle/schema");
+  await db.delete(series).where(eq(series.id, id));
+}
+
+export async function createSpecialty(name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { specialties } = await import("../drizzle/schema");
+  return db.insert(specialties).values({ name });
+}
+
+export async function updateSpecialty(id: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { specialties } = await import("../drizzle/schema");
+  await db.update(specialties).set({ name }).where(eq(specialties.id, id));
+}
+
+export async function deleteSpecialty(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { specialties } = await import("../drizzle/schema");
+  await db.delete(specialties).where(eq(specialties.id, id));
 }

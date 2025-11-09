@@ -1,0 +1,70 @@
+{
+  "query": "SELECT * FROM series",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute SELECT * FROM series",
+  "rows": [
+    {
+      "id": "1",
+      "name": "Prizm",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "2",
+      "name": "Revolution",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "3",
+      "name": "Absolute",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "4",
+      "name": "Hoops",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "5",
+      "name": "Select",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "6",
+      "name": "Optic",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "7",
+      "name": "Donruss",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "8",
+      "name": "Mosaic",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "9",
+      "name": "Chronicles",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    },
+    {
+      "id": "10",
+      "name": "Contenders",
+      "createdAt": "2025-11-09 19:50:30",
+      "updatedAt": "2025-11-09 19:50:30"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tcreatedAt\tupdatedAt\n1\tPrizm\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n2\tRevolution\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n3\tAbsolute\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n4\tHoops\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n5\tSelect\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n6\tOptic\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n7\tDonruss\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n8\tMosaic\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n9\tChronicles\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n10\tContenders\t2025-11-09 19:50:30\t2025-11-09 19:50:30\n",
+  "stderr": "",
+  "execution_time_ms": 50
+}

@@ -39,6 +39,33 @@ export default function CollectionDetail() {
     { enabled: isAuthenticated && collectionId !== null }
   );
 
+  const { data: brands } = trpc.brands.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: series } = trpc.series.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const getBrandName = (brandId: number | null) => {
+    if (!brandId) return "-";
+    return brands?.find(b => b.id === brandId)?.name || "-";
+  };
+
+  const getSeriesName = (seriesId: number | null) => {
+    if (!seriesId) return "-";
+    return series?.find(s => s.id === seriesId)?.name || "-";
+  };
+
+  const getSpecialtyName = (specialtyId: number | null) => {
+    if (!specialtyId) return "-";
+    return specialties?.find(s => s.id === specialtyId)?.name || "-";
+  };
+
   const deleteCardMutation = trpc.cards.delete.useMutation({
     onSuccess: () => {
       utils.cards.listByCollection.invalidate({ collectionId: collectionId! });
@@ -145,8 +172,10 @@ export default function CollectionDetail() {
                       <TableHead>Player</TableHead>
                       <TableHead>Brand</TableHead>
                       <TableHead>Series</TableHead>
+                      <TableHead>Specialty</TableHead>
                       <TableHead>Season</TableHead>
                       <TableHead>Card #</TableHead>
+                      <TableHead>Flags</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -155,10 +184,28 @@ export default function CollectionDetail() {
                     {cards.map((card) => (
                       <TableRow key={card.id}>
                         <TableCell className="font-medium">{card.playerName}</TableCell>
-                        <TableCell>{card.brand}</TableCell>
-                        <TableCell>{card.series}</TableCell>
+                        <TableCell>{getBrandName(card.brandId)}</TableCell>
+                        <TableCell>{getSeriesName(card.seriesId)}</TableCell>
+                        <TableCell>{getSpecialtyName(card.specialtyId)}</TableCell>
                         <TableCell>{card.season}</TableCell>
-                        <TableCell>{card.cardNumber}</TableCell>
+                        <TableCell>
+                          {card.cardNumber}
+                          {card.isNumbered === 1 && card.numberedCurrent && card.numberedOf && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              ({card.numberedCurrent}/{card.numberedOf})
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {card.isAutograph === 1 && (
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">AUTO</span>
+                            )}
+                            {card.isNumbered === 1 && (
+                              <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">#'d</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="max-w-xs truncate">
                           {card.notes || "-"}
                         </TableCell>
