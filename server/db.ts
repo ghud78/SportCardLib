@@ -89,4 +89,121 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Collection queries
+export async function getUserCollections(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { collections } = await import("../drizzle/schema");
+  return db.select().from(collections).where(eq(collections.userId, userId));
+}
+
+export async function getCollectionById(collectionId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const { collections } = await import("../drizzle/schema");
+  const result = await db.select().from(collections).where(eq(collections.id, collectionId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createCollection(data: { userId: number; name: string; description?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collections } = await import("../drizzle/schema");
+  const result = await db.insert(collections).values(data);
+  return result;
+}
+
+export async function updateCollection(collectionId: number, data: { name?: string; description?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collections } = await import("../drizzle/schema");
+  await db.update(collections).set(data).where(eq(collections.id, collectionId));
+}
+
+export async function deleteCollection(collectionId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { collections } = await import("../drizzle/schema");
+  await db.delete(collections).where(eq(collections.id, collectionId));
+}
+
+// Card queries
+export async function getCardsByCollection(collectionId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { cards } = await import("../drizzle/schema");
+  return db.select().from(cards).where(eq(cards.collectionId, collectionId));
+}
+
+export async function getCardById(cardId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const { cards } = await import("../drizzle/schema");
+  const result = await db.select().from(cards).where(eq(cards.id, cardId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createCard(data: {
+  collectionId: number;
+  playerName: string;
+  brand: string;
+  season: string;
+  cardNumber: string;
+  series: string;
+  notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { cards } = await import("../drizzle/schema");
+  const result = await db.insert(cards).values(data);
+  return result;
+}
+
+export async function updateCard(
+  cardId: number,
+  data: {
+    playerName?: string;
+    brand?: string;
+    season?: string;
+    cardNumber?: string;
+    series?: string;
+    notes?: string;
+  }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { cards } = await import("../drizzle/schema");
+  await db.update(cards).set(data).where(eq(cards.id, cardId));
+}
+
+export async function deleteCard(cardId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const { cards } = await import("../drizzle/schema");
+  await db.delete(cards).where(eq(cards.id, cardId));
+}
+
+// Get unique values for dropdowns
+export async function getUniqueBrands(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { cards, collections } = await import("../drizzle/schema");
+  const result = await db
+    .selectDistinct({ brand: cards.brand })
+    .from(cards)
+    .innerJoin(collections, eq(cards.collectionId, collections.id))
+    .where(eq(collections.userId, userId));
+  return result.map(r => r.brand);
+}
+
+export async function getUniqueSeries(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const { cards, collections } = await import("../drizzle/schema");
+  const result = await db
+    .selectDistinct({ series: cards.series })
+    .from(cards)
+    .innerJoin(collections, eq(cards.collectionId, collections.id))
+    .where(eq(collections.userId, userId));
+  return result.map(r => r.series);
+}
