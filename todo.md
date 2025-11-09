@@ -114,9 +114,9 @@
 - [x] Implement image upload backend with S3 storage
 - [x] Add manual image upload UI to Add Card page
 - [x] Add manual image upload UI to Edit Card page
-- [ ] Build smart search query from card metadata
-- [ ] Implement automatic image search backend
-- [ ] Create image selection dialog (max 9 results)
-- [ ] Add "Find Images" button to Edit Card page
-- [ ] Add image status columns to Collection Detail table
-- [ ] Implement hover thumbnail expansion for images
+- [x] Build smart search query from card metadata
+- [x] Implement automatic image search backend
+- [x] Create image selection dialog (max 9 results)
+- [x] Add "Find Images" button to Edit Card page
+- [x] Add image status columns to Collection Detail table
+- [x] Implement hover thumbnail expansion for images

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ImageUpload";
+import { ImageSearchDialog } from "@/components/ImageSearchDialog";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -48,6 +49,9 @@ export default function EditCard() {
   const [imageFrontUrl, setImageFrontUrl] = useState<string | undefined>();
   const [imageBackUrl, setImageBackUrl] = useState<string | undefined>();
   const [notes, setNotes] = useState("");
+  const [showSearchDialog, setShowSearchDialog] = useState(false);
+  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const utils = trpc.useUtils();
 
@@ -105,6 +109,20 @@ export default function EditCard() {
     }
   }, [card]);
 
+  const searchImagesMutation = trpc.cards.searchImages.useMutation({
+    onSuccess: (data) => {
+      setSearchResults(data.imageUrls);
+      setSearchQuery(data.searchQuery);
+      setShowSearchDialog(true);
+      if (data.imageUrls.length === 0) {
+        toast.error("No images found. Try different search terms or upload manually.");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to search for images");
+    },
+  });
+
   const updateCardMutation = trpc.cards.update.useMutation({
     onSuccess: () => {
       utils.cards.listByCollection.invalidate({ collectionId: collectionId! });
@@ -115,6 +133,41 @@ export default function EditCard() {
       toast.error(error.message || "Failed to update card");
     },
   });
+
+  const handleSearchImages = () => {
+    if (!playerName.trim()) {
+      toast.error("Player name is required for search");
+      return;
+    }
+    if (!season.trim()) {
+      toast.error("Season is required for search");
+      return;
+    }
+    if (!cardNumber.trim()) {
+      toast.error("Card number is required for search");
+      return;
+    }
+
+    // Get brand, series, subseries, specialty names
+    const brandName = brands?.find((b) => b.id === brandId)?.name;
+    const seriesName = series?.find((s) => s.id === seriesId)?.name;
+    const subseriesName = subseries?.find((sub) => sub.id === subseriesId)?.name;
+    const specialtyName = specialties?.find((sp) => sp.id === specialtyId)?.name;
+
+    searchImagesMutation.mutate({
+      playerName: playerName.trim(),
+      brandName,
+      seriesName,
+      subseriesName,
+      specialtyName,
+      season: season.trim(),
+      cardNumber: cardNumber.trim(),
+      isAutograph,
+      isNumbered,
+      numberedCurrent: isNumbered && numberedCurrent ? parseInt(numberedCurrent) : undefined,
+      numberedOf: isNumbered && numberedOf ? parseInt(numberedOf) : undefined,
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -389,17 +442,38 @@ export default function EditCard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <ImageUpload
-                    label="Front Image (Optional)"
-                    value={imageFrontUrl}
-                    onChange={setImageFrontUrl}
-                  />
-                  <ImageUpload
-                    label="Back Image (Optional)"
-                    value={imageBackUrl}
-                    onChange={setImageBackUrl}
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSearchImages}
+                      disabled={searchImagesMutation.isPending}
+                      className="w-full"
+                    >
+                      {searchImagesMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Searching...
+                        </>
+                      ) : (
+                        "🔍 Find Images Online"
+                      )}
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <ImageUpload
+                      label="Front Image (Optional)"
+                      value={imageFrontUrl}
+                      onChange={setImageFrontUrl}
+                    />
+                    <ImageUpload
+                      label="Back Image (Optional)"
+                      value={imageBackUrl}
+                      onChange={setImageBackUrl}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -443,6 +517,21 @@ export default function EditCard() {
           </Card>
         </div>
       </div>
+
+      <ImageSearchDialog
+        open={showSearchDialog}
+        onClose={() => setShowSearchDialog(false)}
+        imageUrls={searchResults}
+        searchQuery={searchQuery}
+        onSelectFront={(url) => {
+          setImageFrontUrl(url);
+          toast.success("Front image selected");
+        }}
+        onSelectBack={(url) => {
+          setImageBackUrl(url);
+          toast.success("Back image selected");
+        }}
+      />
     </div>
   );
 }

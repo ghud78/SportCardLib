@@ -89,6 +89,27 @@ export const appRouter = router({
   }),
 
   cards: router({
+    searchImages: protectedProcedure
+      .input(
+        z.object({
+          playerName: z.string(),
+          brandName: z.string().optional(),
+          seriesName: z.string().optional(),
+          subseriesName: z.string().optional(),
+          specialtyName: z.string().optional(),
+          season: z.string(),
+          cardNumber: z.string(),
+          isAutograph: z.boolean(),
+          isNumbered: z.boolean(),
+          numberedCurrent: z.number().optional(),
+          numberedOf: z.number().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { searchCardImages } = await import("./searchCardImages");
+        const imageUrls = await searchCardImages(input);
+        return { imageUrls, searchQuery: `${input.season} ${input.brandName || ''} ${input.seriesName || ''} ${input.playerName} #${input.cardNumber}`.trim() };
+      }),
     listByCollection: protectedProcedure
       .input(z.object({ collectionId: z.number() }))
       .query(async ({ ctx, input }) => {

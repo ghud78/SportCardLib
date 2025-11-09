@@ -176,6 +176,7 @@ export default function CollectionDetail() {
                       <TableHead>Season</TableHead>
                       <TableHead>Card #</TableHead>
                       <TableHead>Flags</TableHead>
+                      <TableHead>Images</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -203,6 +204,30 @@ export default function CollectionDetail() {
                             )}
                             {card.isNumbered === 1 && (
                               <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">#'d</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 relative group">
+                            {card.imageFrontUrl ? (
+                              <div className="relative">
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded cursor-pointer">✓ F</span>
+                                <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover:block">
+                                  <img src={card.imageFrontUrl} alt="Front" className="w-48 h-auto border-2 border-green-500 rounded shadow-lg" />
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">✗ F</span>
+                            )}
+                            {card.imageBackUrl ? (
+                              <div className="relative">
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded cursor-pointer">✓ B</span>
+                                <div className="absolute left-0 top-full mt-1 z-10 hidden group-hover:block">
+                                  <img src={card.imageBackUrl} alt="Back" className="w-48 h-auto border-2 border-green-500 rounded shadow-lg" />
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">✗ B</span>
                             )}
                           </div>
                         </TableCell>
