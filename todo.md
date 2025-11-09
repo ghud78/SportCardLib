@@ -49,7 +49,7 @@
 - [x] Add error handling and user feedback
 
 ## Deployment
-- [ ] Create GitHub repository
-- [ ] Push code to GitHub
-- [ ] Create deployment documentation
-- [ ] Test deployed application
+- [x] Create GitHub repository
+- [x] Push code to GitHub
+- [x] Create deployment documentation
+- [x] Test deployed application
