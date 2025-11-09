@@ -18,6 +18,7 @@ interface SearchDebugInfo {
   fallbackResults?: number;
   ebayResults?: number;
   rawResponse?: any;
+  error?: string;
 }
 
 interface ImageSearchDialogProps {
@@ -112,12 +113,17 @@ export function ImageSearchDialog({
             {debugInfo.ebayQuery && (
               <>
                 <div>
-                  <strong>eBay Query:</strong> "{debugInfo.ebayQuery}"
+                  <strong>Simple eBay Query:</strong> "{debugInfo.ebayQuery}"
                 </div>
                 <div>
                   <strong>eBay Results:</strong> {debugInfo.ebayResults}
                 </div>
               </>
+            )}
+            {debugInfo.error && (
+              <div className="text-destructive">
+                <strong>Error:</strong> {debugInfo.error}
+              </div>
             )}
             {debugInfo.rawResponse && (
               <details className="mt-2">
@@ -134,10 +140,18 @@ export function ImageSearchDialog({
           <div className="text-center py-8 text-muted-foreground">
             <p className="mb-2">No images found.</p>
             {debugInfo && (
-              <p className="text-sm">
-                Searched: "{debugInfo.detailedQuery}"
-                {debugInfo.fallbackQuery && ` and "${debugInfo.fallbackQuery}"`}
-              </p>
+              <>
+                <p className="text-sm">
+                  Searched: "{debugInfo.detailedQuery}"
+                  {debugInfo.fallbackQuery && ` and "${debugInfo.fallbackQuery}"`}
+                  {debugInfo.ebayQuery && ` and "${debugInfo.ebayQuery}"`}
+                </p>
+                {debugInfo.error && (
+                  <p className="text-sm text-destructive mt-1">
+                    Error: {debugInfo.error}
+                  </p>
+                )}
+              </>
             )}
             <p className="mt-2">Try uploading manually instead.</p>
           </div>

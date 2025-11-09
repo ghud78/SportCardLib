@@ -1,6 +1,3 @@
-import { ENV } from "./_core/env";
-import { searchEbayForCardImages } from "./ebayApi";
-
 interface CardSearchParams {
   playerName: string;
   brandName?: string;
@@ -24,11 +21,99 @@ export interface SearchDebugInfo {
   fallbackResults?: number;
   ebayResults?: number;
   rawResponse?: any;
+  error?: string;
 }
 
 export interface SearchResult {
   imageUrls: string[];
   debugInfo: SearchDebugInfo;
+}
+
+// eBay OAuth token cache
+let ebayTokenCache: { token: string; expiresAt: number } | null = null;
+
+async function getEbayToken(): Promise<string> {
+  // Check if we have a valid cached token
+  if (ebayTokenCache && ebayTokenCache.expiresAt > Date.now()) {
+    return ebayTokenCache.token;
+  }
+
+  const appId = process.env.EBAY_APP_ID;
+  const certId = process.env.EBAY_CERT_ID;
+
+  if (!appId || !certId) {
+    throw new Error("eBay credentials not configured");
+  }
+
+  // Get OAuth token from eBay
+  const credentials = Buffer.from(`${appId}:${certId}`).toString("base64");
+  const tokenUrl = "https://api.sandbox.ebay.com/identity/v1/oauth2/token";
+
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials}`,
+    },
+    body: "grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope",
+  });
+
+  if (!response.ok) {
+    throw new Error(`eBay OAuth failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  
+  // Cache the token (expires_in is in seconds)
+  ebayTokenCache = {
+    token: data.access_token,
+    expiresAt: Date.now() + (data.expires_in - 60) * 1000, // Subtract 60s for safety
+  };
+
+  return data.access_token;
+}
+
+async function searchEbay(query: string): Promise<{ urls: string[]; rawData: any }> {
+  console.log(`[eBay Search] Searching: "${query}"`);
+
+  const token = await getEbayToken();
+  const searchUrl = "https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search";
+  
+  // Build URL with query parameters
+  const url = new URL(searchUrl);
+  url.searchParams.set("q", query);
+  url.searchParams.set("limit", "9");
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`[eBay Search] HTTP Error: ${response.status} ${response.statusText}`, errorText);
+    throw new Error(`eBay search failed: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log(`[eBay Search] Raw response:`, JSON.stringify(data, null, 2));
+
+  // Extract image URLs from eBay results
+  const imageUrls: string[] = [];
+  if (data.itemSummaries && Array.isArray(data.itemSummaries)) {
+    for (const item of data.itemSummaries) {
+      if (item.image && item.image.imageUrl) {
+        imageUrls.push(item.image.imageUrl);
+      }
+    }
+  }
+
+  console.log(`[eBay Search] Found ${imageUrls.length} images`);
+
+  return { urls: imageUrls, rawData: data };
 }
 
 export async function searchCardImages(params: CardSearchParams): Promise<SearchResult> {
@@ -74,58 +159,18 @@ export async function searchCardImages(params: CardSearchParams): Promise<Search
     queryParts.push("Auto");
   }
 
-  const searchQuery = queryParts.join(" ");
-  const apiEndpoint = `${ENV.forgeApiUrl}/omni_search`;
+  const detailedQuery = queryParts.join(" ") + " trading card";
 
   const debugInfo: SearchDebugInfo = {
-    detailedQuery: searchQuery,
-    apiEndpoint,
+    detailedQuery,
+    apiEndpoint: "eBay Browse API (Sandbox)",
     detailedResults: 0,
-  };
-
-  // Helper function to perform search
-  const performSearch = async (query: string): Promise<{ urls: string[]; rawData: any }> => {
-    console.log(`[Image Search] Searching: "${query}"`);
-    console.log(`[Image Search] Endpoint: ${apiEndpoint}`);
-
-    const response = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ENV.forgeApiKey}`,
-      },
-      body: JSON.stringify({
-        queries: [query],
-        search_type: "image",
-      }),
-    });
-
-    if (!response.ok) {
-      console.error(`[Image Search] HTTP Error: ${response.status} ${response.statusText}`);
-      throw new Error(`Search failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log(`[Image Search] Raw response:`, JSON.stringify(data, null, 2));
-    
-    // Extract image URLs from results (limit to 9)
-    const imageUrls: string[] = [];
-    if (data.results && Array.isArray(data.results)) {
-      for (const result of data.results.slice(0, 9)) {
-        if (result.url) {
-          imageUrls.push(result.url);
-        }
-      }
-    }
-
-    console.log(`[Image Search] Found ${imageUrls.length} images`);
-
-    return { urls: imageUrls, rawData: data };
   };
 
   try {
     // Try detailed search first
-    const detailedResult = await performSearch(searchQuery);
+    console.log("[Image Search] Trying detailed query with eBay...");
+    const detailedResult = await searchEbay(detailedQuery);
     let imageUrls = detailedResult.urls;
     debugInfo.detailedResults = imageUrls.length;
     debugInfo.rawResponse = detailedResult.rawData;
@@ -155,30 +200,33 @@ export async function searchCardImages(params: CardSearchParams): Promise<Search
       // Card number with # prefix
       fallbackParts.push(`#${params.cardNumber}`);
       
-      const fallbackQuery = fallbackParts.join(" ");
+      const fallbackQuery = fallbackParts.join(" ") + " trading card";
       debugInfo.fallbackQuery = fallbackQuery;
 
-      const fallbackResult = await performSearch(fallbackQuery);
+      const fallbackResult = await searchEbay(fallbackQuery);
       imageUrls = fallbackResult.urls;
       debugInfo.fallbackResults = imageUrls.length;
       debugInfo.rawResponse = fallbackResult.rawData;
 
-      // If still no results, try eBay API
+      // If still no results, try even simpler query
       if (imageUrls.length === 0) {
-        console.log("[Image Search] No results with fallback query, trying eBay API...");
+        console.log("[Image Search] No results with fallback query, trying simple query...");
         
-        // Use the same fallback query for eBay
-        debugInfo.ebayQuery = fallbackQuery;
-        
-        try {
-          const ebayUrls = await searchEbayForCardImages(fallbackQuery);
-          imageUrls = ebayUrls;
-          debugInfo.ebayResults = ebayUrls.length;
-          console.log(`[Image Search] eBay returned ${ebayUrls.length} images`);
-        } catch (ebayError) {
-          console.error("[Image Search] eBay search failed:", ebayError);
-          debugInfo.ebayResults = 0;
+        const simpleParts: string[] = [];
+        simpleParts.push(params.season);
+        if (params.brandName) {
+          simpleParts.push(params.brandName);
         }
+        simpleParts.push(params.playerName);
+        simpleParts.push("card");
+        
+        const simpleQuery = simpleParts.join(" ");
+        debugInfo.ebayQuery = simpleQuery;
+
+        const simpleResult = await searchEbay(simpleQuery);
+        imageUrls = simpleResult.urls;
+        debugInfo.ebayResults = imageUrls.length;
+        debugInfo.rawResponse = simpleResult.rawData;
       }
     }
 
@@ -188,6 +236,12 @@ export async function searchCardImages(params: CardSearchParams): Promise<Search
     };
   } catch (error) {
     console.error("[Image Search] Error:", error);
-    throw new Error(`Failed to search for card images: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    debugInfo.error = error instanceof Error ? error.message : "Unknown error";
+    
+    // Return empty results with debug info instead of throwing
+    return {
+      imageUrls: [],
+      debugInfo,
+    };
   }
 }

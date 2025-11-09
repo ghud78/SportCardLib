@@ -129,8 +129,10 @@
 - [x] Return debug info (queries, endpoint, results) from backend
 - [x] Display debug information in UI dialog
 
-## eBay Image Search Integration
-- [x] Add eBay API credentials as secrets
-- [x] Implement eBay Browse API integration
-- [x] Add eBay as third fallback in search logic
-- [x] Update debug display to show eBay search results
+## eBay API Integration
+- [x] Add eBay credentials as secrets
+- [x] Implement eBay OAuth token generation
+- [x] Create eBay search function
+- [x] Integrate eBay as third fallback in image search
+- [x] Update debug display for eBay results
+- [x] Fix "Not Found" error in image search
