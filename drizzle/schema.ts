@@ -59,6 +59,8 @@ export const cards = mysqlTable("cards", {
   isNumbered: int("isNumbered").default(0).notNull(), // 0 = false, 1 = true
   numberedOf: int("numberedOf"), // Maximum number (e.g., 99 in "25/99")
   numberedCurrent: int("numberedCurrent"), // Current number (e.g., 25 in "25/99")
+  imageFrontUrl: text("imageFrontUrl"), // URL to front image of the card
+  imageBackUrl: text("imageBackUrl"), // URL to back image of the card
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

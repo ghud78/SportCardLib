@@ -146,16 +146,18 @@ export async function getCardById(cardId: number) {
 export async function createCard(data: {
   collectionId: number;
   playerName: string;
-  brandId?: number | null;
-  seriesId?: number | null;
-  subseriesId?: number | null;
-  specialtyId?: number | null;
+  brandId?: number;
+  seriesId?: number;
+  subseriesId?: number;
+  specialtyId?: number;
   season: string;
   cardNumber: string;
   isAutograph?: number;
   isNumbered?: number;
-  numberedCurrent?: number | null;
-  numberedOf?: number | null;
+  numberedOf?: number;
+  numberedCurrent?: number;
+  imageFrontUrl?: string;
+  imageBackUrl?: string;
   notes?: string;
 }) {
   const db = await getDb();
@@ -169,16 +171,18 @@ export async function updateCard(
   cardId: number,
   data: {
     playerName?: string;
-    brandId?: number | null;
-    seriesId?: number | null;
-    subseriesId?: number | null;
-    specialtyId?: number | null;
+    brandId?: number;
+    seriesId?: number;
+    subseriesId?: number;
+    specialtyId?: number;
     season?: string;
     cardNumber?: string;
     isAutograph?: number;
     isNumbered?: number;
-    numberedCurrent?: number | null;
-    numberedOf?: number | null;
+    numberedOf?: number;
+    numberedCurrent?: number;
+    imageFrontUrl?: string;
+    imageBackUrl?: string;
     notes?: string;
   }
 ) {

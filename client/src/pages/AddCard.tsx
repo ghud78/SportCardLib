@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ImageUpload";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -43,6 +44,8 @@ export default function AddCard() {
   const [isNumbered, setIsNumbered] = useState(false);
   const [numberedCurrent, setNumberedCurrent] = useState("");
   const [numberedOf, setNumberedOf] = useState("");
+  const [imageFrontUrl, setImageFrontUrl] = useState<string | undefined>();
+  const [imageBackUrl, setImageBackUrl] = useState<string | undefined>();
   const [notes, setNotes] = useState("");
 
   const utils = trpc.useUtils();
@@ -98,6 +101,8 @@ export default function AddCard() {
       setIsNumbered(false);
       setNumberedCurrent("");
       setNumberedOf("");
+      setImageFrontUrl(undefined);
+      setImageBackUrl(undefined);
       setNotes("");
     },
     onError: (error) => {
@@ -148,6 +153,8 @@ export default function AddCard() {
       isNumbered,
       numberedCurrent: isNumbered && numberedCurrent ? parseInt(numberedCurrent) : undefined,
       numberedOf: isNumbered && numberedOf ? parseInt(numberedOf) : undefined,
+      imageFrontUrl,
+      imageBackUrl,
       notes: notes.trim() || undefined,
     });
   };
@@ -379,6 +386,19 @@ export default function AddCard() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <ImageUpload
+                    label="Front Image (Optional)"
+                    value={imageFrontUrl}
+                    onChange={setImageFrontUrl}
+                  />
+                  <ImageUpload
+                    label="Back Image (Optional)"
+                    value={imageBackUrl}
+                    onChange={setImageBackUrl}
+                  />
                 </div>
 
                 <div className="space-y-2">

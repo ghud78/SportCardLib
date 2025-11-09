@@ -114,6 +114,8 @@ export const appRouter = router({
           isNumbered: z.boolean().optional(),
           numberedCurrent: z.number().nullable().optional(),
           numberedOf: z.number().nullable().optional(),
+          imageFrontUrl: z.string().optional(),
+          imageBackUrl: z.string().optional(),
           notes: z.string().optional(),
         })
       )
@@ -124,9 +126,21 @@ export const appRouter = router({
           throw new Error("Collection not found or unauthorized");
         }
         return createCard({
-          ...input,
+          collectionId: input.collectionId,
+          playerName: input.playerName,
+          brandId: input.brandId ?? undefined,
+          seriesId: input.seriesId ?? undefined,
+          subseriesId: input.subseriesId ?? undefined,
+          specialtyId: input.specialtyId ?? undefined,
+          season: input.season,
+          cardNumber: input.cardNumber,
           isAutograph: input.isAutograph ? 1 : 0,
           isNumbered: input.isNumbered ? 1 : 0,
+          numberedCurrent: input.numberedCurrent ?? undefined,
+          numberedOf: input.numberedOf ?? undefined,
+          imageFrontUrl: input.imageFrontUrl,
+          imageBackUrl: input.imageBackUrl,
+          notes: input.notes,
         });
       }),
     update: protectedProcedure
@@ -144,6 +158,8 @@ export const appRouter = router({
           isNumbered: z.boolean().optional(),
           numberedCurrent: z.number().nullable().optional(),
           numberedOf: z.number().nullable().optional(),
+          imageFrontUrl: z.string().optional(),
+          imageBackUrl: z.string().optional(),
           notes: z.string().optional(),
         })
       )

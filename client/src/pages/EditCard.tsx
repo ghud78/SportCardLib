@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ImageUpload";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -44,6 +45,8 @@ export default function EditCard() {
   const [isNumbered, setIsNumbered] = useState(false);
   const [numberedCurrent, setNumberedCurrent] = useState("");
   const [numberedOf, setNumberedOf] = useState("");
+  const [imageFrontUrl, setImageFrontUrl] = useState<string | undefined>();
+  const [imageBackUrl, setImageBackUrl] = useState<string | undefined>();
   const [notes, setNotes] = useState("");
 
   const utils = trpc.useUtils();
@@ -96,6 +99,8 @@ export default function EditCard() {
       setIsNumbered(card.isNumbered === 1);
       setNumberedCurrent(card.numberedCurrent?.toString() || "");
       setNumberedOf(card.numberedOf?.toString() || "");
+      setImageFrontUrl(card.imageFrontUrl || undefined);
+      setImageBackUrl(card.imageBackUrl || undefined);
       setNotes(card.notes || "");
     }
   }, [card]);
@@ -154,6 +159,8 @@ export default function EditCard() {
       isNumbered,
       numberedCurrent: isNumbered && numberedCurrent ? parseInt(numberedCurrent) : undefined,
       numberedOf: isNumbered && numberedOf ? parseInt(numberedOf) : undefined,
+      imageFrontUrl,
+      imageBackUrl,
       notes: notes.trim() || undefined,
     });
   };
@@ -380,6 +387,19 @@ export default function EditCard() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <ImageUpload
+                    label="Front Image (Optional)"
+                    value={imageFrontUrl}
+                    onChange={setImageFrontUrl}
+                  />
+                  <ImageUpload
+                    label="Back Image (Optional)"
+                    value={imageBackUrl}
+                    onChange={setImageBackUrl}
+                  />
                 </div>
 
                 <div className="space-y-2">

@@ -108,3 +108,15 @@
 - [x] Update collection create/edit forms with category and type selectors
 - [x] Seed initial categories data
 - [x] Seed initial collection types data
+
+## Card Image Management
+- [x] Add imageFrontUrl and imageBackUrl fields to cards table
+- [x] Implement image upload backend with S3 storage
+- [x] Add manual image upload UI to Add Card page
+- [x] Add manual image upload UI to Edit Card page
+- [ ] Build smart search query from card metadata
+- [ ] Implement automatic image search backend
+- [ ] Create image selection dialog (max 9 results)
+- [ ] Add "Find Images" button to Edit Card page
+- [ ] Add image status columns to Collection Detail table
+- [ ] Implement hover thumbnail expansion for images
