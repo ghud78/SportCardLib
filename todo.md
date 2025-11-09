@@ -120,3 +120,6 @@
 - [x] Add "Find Images" button to Edit Card page
 - [x] Add image status columns to Collection Detail table
 - [x] Implement hover thumbnail expansion for images
+
+## Image Search Improvement
+- [x] Implement fallback search strategy (simpler query if detailed search fails)

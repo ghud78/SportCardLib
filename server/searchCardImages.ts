@@ -59,8 +59,8 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
 
   const searchQuery = queryParts.join(" ");
 
-  try {
-    // Use the search API to find images
+  // Helper function to perform search
+  const performSearch = async (query: string): Promise<string[]> => {
     const response = await fetch(`${ENV.forgeApiUrl}/omni_search`, {
       method: "POST",
       headers: {
@@ -68,7 +68,7 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
         Authorization: `Bearer ${ENV.forgeApiKey}`,
       },
       body: JSON.stringify({
-        queries: [searchQuery],
+        queries: [query],
         search_type: "image",
       }),
     });
@@ -87,6 +87,40 @@ export async function searchCardImages(params: CardSearchParams): Promise<string
           imageUrls.push(result.url);
         }
       }
+    }
+
+    return imageUrls;
+  };
+
+  try {
+    // Try detailed search first
+    let imageUrls = await performSearch(searchQuery);
+
+    // If no results, try simpler fallback query
+    if (imageUrls.length === 0) {
+      const fallbackParts: string[] = [];
+      
+      // Season
+      fallbackParts.push(params.season);
+      
+      // Brand
+      if (params.brandName) {
+        fallbackParts.push(params.brandName);
+      }
+      
+      // Series
+      if (params.seriesName) {
+        fallbackParts.push(params.seriesName);
+      }
+      
+      // Player name
+      fallbackParts.push(params.playerName);
+      
+      // Card number with # prefix
+      fallbackParts.push(`#${params.cardNumber}`);
+      
+      const fallbackQuery = fallbackParts.join(" ");
+      imageUrls = await performSearch(fallbackQuery);
     }
 
     return imageUrls;
