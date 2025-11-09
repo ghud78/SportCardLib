@@ -205,13 +205,12 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="brand">Brand</Label>
-                  <Select value={brandId?.toString() || ""} onValueChange={(v) => setBrandId(v ? parseInt(v) : null)}>
+                  <Label htmlFor="brand">Brand (Optional)</Label>
+                  <Select value={brandId?.toString()} onValueChange={(v) => setBrandId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select brand" />
+                      <SelectValue placeholder="Select brand (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {brands?.map((brand) => (
                         <SelectItem key={brand.id} value={brand.id.toString()}>
                           {brand.name}
@@ -222,13 +221,12 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="series">Series</Label>
-                  <Select value={seriesId?.toString() || ""} onValueChange={(v) => setSeriesId(v ? parseInt(v) : null)}>
+                  <Label htmlFor="series">Series (Optional)</Label>
+                  <Select value={seriesId?.toString()} onValueChange={(v) => setSeriesId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select series" />
+                      <SelectValue placeholder="Select series (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {series?.map((s) => (
                         <SelectItem key={s.id} value={s.id.toString()}>
                           {s.name}
@@ -239,13 +237,12 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialty">Specialty</Label>
-                  <Select value={specialtyId?.toString() || ""} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
+                  <Label htmlFor="specialty">Specialty (Optional)</Label>
+                  <Select value={specialtyId?.toString()} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select specialty" />
+                      <SelectValue placeholder="Select specialty (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
                       {specialties?.map((specialty) => (
                         <SelectItem key={specialty.id} value={specialty.id.toString()}>
                           {specialty.name}

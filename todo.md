@@ -72,3 +72,7 @@
 - [x] Set current user as admin
 - [x] Test all admin features
 - [x] Test regular user restrictions
+
+## Bug Fixes
+- [x] Fix Select component empty string error in AddCard form
+- [x] Fix Select component empty string error in EditCard form
