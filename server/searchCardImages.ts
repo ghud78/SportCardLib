@@ -1,4 +1,5 @@
 import { ENV } from "./_core/env";
+import { searchEbayForCardImages } from "./ebayApi";
 
 interface CardSearchParams {
   playerName: string;
@@ -17,9 +18,11 @@ interface CardSearchParams {
 export interface SearchDebugInfo {
   detailedQuery: string;
   fallbackQuery?: string;
+  ebayQuery?: string;
   apiEndpoint: string;
   detailedResults: number;
   fallbackResults?: number;
+  ebayResults?: number;
   rawResponse?: any;
 }
 
@@ -159,6 +162,24 @@ export async function searchCardImages(params: CardSearchParams): Promise<Search
       imageUrls = fallbackResult.urls;
       debugInfo.fallbackResults = imageUrls.length;
       debugInfo.rawResponse = fallbackResult.rawData;
+
+      // If still no results, try eBay API
+      if (imageUrls.length === 0) {
+        console.log("[Image Search] No results with fallback query, trying eBay API...");
+        
+        // Use the same fallback query for eBay
+        debugInfo.ebayQuery = fallbackQuery;
+        
+        try {
+          const ebayUrls = await searchEbayForCardImages(fallbackQuery);
+          imageUrls = ebayUrls;
+          debugInfo.ebayResults = ebayUrls.length;
+          console.log(`[Image Search] eBay returned ${ebayUrls.length} images`);
+        } catch (ebayError) {
+          console.error("[Image Search] eBay search failed:", ebayError);
+          debugInfo.ebayResults = 0;
+        }
+      }
     }
 
     return {

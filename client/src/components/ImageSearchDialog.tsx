@@ -12,9 +12,11 @@ import { useState } from "react";
 interface SearchDebugInfo {
   detailedQuery: string;
   fallbackQuery?: string;
+  ebayQuery?: string;
   apiEndpoint: string;
   detailedResults: number;
   fallbackResults?: number;
+  ebayResults?: number;
   rawResponse?: any;
 }
 
@@ -104,6 +106,16 @@ export function ImageSearchDialog({
                 </div>
                 <div>
                   <strong>Fallback Results:</strong> {debugInfo.fallbackResults}
+                </div>
+              </>
+            )}
+            {debugInfo.ebayQuery && (
+              <>
+                <div>
+                  <strong>eBay Query:</strong> "{debugInfo.ebayQuery}"
+                </div>
+                <div>
+                  <strong>eBay Results:</strong> {debugInfo.ebayResults}
                 </div>
               </>
             )}
