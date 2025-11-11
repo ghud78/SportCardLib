@@ -47,7 +47,7 @@ async function getEbayToken(): Promise<string> {
 
   // Get OAuth token from eBay
   const credentials = Buffer.from(`${appId}:${certId}`).toString("base64");
-  const tokenUrl = "https://api.sandbox.ebay.com/identity/v1/oauth2/token";
+  const tokenUrl = "https://api.ebay.com/identity/v1/oauth2/token";
 
   const response = await fetch(tokenUrl, {
     method: "POST",
@@ -77,7 +77,7 @@ async function searchEbay(query: string): Promise<{ urls: string[]; rawData: any
   console.log(`[eBay Search] Searching: "${query}"`);
 
   const token = await getEbayToken();
-  const searchUrl = "https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search";
+  const searchUrl = "https://api.ebay.com/buy/browse/v1/item_summary/search";
   
   // Build URL with query parameters
   const url = new URL(searchUrl);
@@ -163,7 +163,7 @@ export async function searchCardImages(params: CardSearchParams): Promise<Search
 
   const debugInfo: SearchDebugInfo = {
     detailedQuery,
-    apiEndpoint: "eBay Browse API (Sandbox)",
+    apiEndpoint: "eBay Browse API (Production)",
     detailedResults: 0,
   };
 

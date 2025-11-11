@@ -136,3 +136,8 @@
 - [x] Integrate eBay as third fallback in image search
 - [x] Update debug display for eBay results
 - [x] Fix "Not Found" error in image search
+
+## eBay Production API Upgrade
+- [x] Implement eBay Marketplace Account Deletion notification endpoint (Opted out - app doesn't store eBay user data)
+- [x] Update eBay API to use Production endpoints instead of Sandbox
+- [x] Update environment variables documentation for Production credentials
