@@ -141,3 +141,6 @@
 - [x] Implement eBay Marketplace Account Deletion notification endpoint (Opted out - app doesn't store eBay user data)
 - [x] Update eBay API to use Production endpoints instead of Sandbox
 - [x] Update environment variables documentation for Production credentials
+
+## Bug Fixes
+- [x] Fix "eBay credentials not configured" error - credentials not being loaded from environment (fixed by server restart)
