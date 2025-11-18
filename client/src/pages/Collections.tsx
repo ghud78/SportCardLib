@@ -27,11 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Loader2, Plus, Trash2, Edit, FolderOpen } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit, FolderOpen, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
+import ExcelImportWizard from "@/components/ExcelImportWizard";
 
 export default function Collections() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -49,6 +50,8 @@ export default function Collections() {
     categoryId: number | null;
     collectionTypeId: number | null;
   } | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importingCollection, setImportingCollection] = useState<{ id: number; name: string } | null>(null);
 
   const utils = trpc.useUtils();
   const { data: collections, isLoading } = trpc.collections.list.useQuery(
@@ -287,12 +290,21 @@ export default function Collections() {
                 <CardContent>
                   <div className="flex gap-2">
                     <Button
-                      variant="default"
                       size="sm"
                       className="flex-1"
                       onClick={() => setLocation(`/collection/${collection.id}`)}
                     >
                       View Cards
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setImportingCollection({ id: collection.id, name: collection.name });
+                        setImportDialogOpen(true);
+                      }}
+                    >
+                      <Upload className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
@@ -430,6 +442,21 @@ export default function Collections() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {importingCollection && (
+          <ExcelImportWizard
+            collectionId={importingCollection.id}
+            collectionName={importingCollection.name}
+            open={importDialogOpen}
+            onClose={() => {
+              setImportDialogOpen(false);
+              setImportingCollection(null);
+            }}
+            onImportComplete={() => {
+              utils.collections.list.invalidate();
+            }}
+          />
+        )}
       </div>
     </div>
   );

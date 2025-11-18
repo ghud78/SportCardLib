@@ -387,6 +387,78 @@ export const appRouter = router({
         return { success: true };
       }),
   }),
+
+  excel: router({
+    downloadTemplate: protectedProcedure.query(async () => {
+      const { generateExcelTemplate } = await import("./excelImport");
+      const buffer = await generateExcelTemplate();
+      return {
+        data: buffer.toString('base64'),
+        filename: 'card_import_template.xlsx',
+      };
+    }),
+    parseFile: protectedProcedure
+      .input(z.object({ fileData: z.string() }))
+      .mutation(async ({ input }) => {
+        const { parseExcelFile, autoMatchColumns } = await import("./excelImport");
+        const buffer = Buffer.from(input.fileData, 'base64');
+        const parsed = await parseExcelFile(buffer);
+        const autoMappings = autoMatchColumns(parsed.headers);
+        return {
+          headers: parsed.headers,
+          rowCount: parsed.rows.length,
+          autoMappings,
+        };
+      }),
+    validate: protectedProcedure
+      .input(
+        z.object({
+          fileData: z.string(),
+          mappings: z.array(
+            z.object({
+              excelColumn: z.string(),
+              dbField: z.string(),
+            })
+          ),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { parseExcelFile, validateImportData } = await import("./excelImport");
+        const buffer = Buffer.from(input.fileData, 'base64');
+        const parsed = await parseExcelFile(buffer);
+        const validation = await validateImportData(parsed.rows, input.mappings);
+        return validation;
+      }),
+    import: protectedProcedure
+      .input(
+        z.object({
+          collectionId: z.number(),
+          fileData: z.string(),
+          mappings: z.array(
+            z.object({
+              excelColumn: z.string(),
+              dbField: z.string(),
+            })
+          ),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { parseExcelFile, importCards } = await import("./excelImport");
+        const { getCollectionById } = await import("./db");
+        
+        // Verify user owns the collection
+        const collection = await getCollectionById(input.collectionId);
+        if (!collection || collection.userId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Unauthorized' });
+        }
+        
+        const buffer = Buffer.from(input.fileData, 'base64');
+        const parsed = await parseExcelFile(buffer);
+        await importCards(input.collectionId, parsed.rows, input.mappings);
+        
+        return { success: true, importedCount: parsed.rows.length };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

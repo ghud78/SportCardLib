@@ -148,3 +148,15 @@
 ## Production Deployment Issues
 - [x] eBay credentials not working on published site (sportcards-nropuiaq.manus.space) - fixed by republishing with credentials
 - [x] Fix JSON parse error - eBay API returning HTML instead of JSON - added content-type validation
+
+## Excel Import Feature
+- [x] Add "Download Template" button on My Collections page to generate empty Excel template
+- [x] Add "Import Collection" button on My Collections page next to View Cards button
+- [x] Implement Excel file parsing with column header detection
+- [x] Build column mapping wizard UI with auto-matching
+- [x] Implement validation for required fields (Player Name, Season, Card Number)
+- [x] Show preview screen with all cards to be imported
+- [x] Display missing brands/series/specialty values that need database updates
+- [x] Implement bulk card import API endpoint
+- [x] Add error handling - cancel entire import if any validation errors
+- [x] Test complete import flow with sample data
