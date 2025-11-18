@@ -144,3 +144,7 @@
 
 ## Bug Fixes
 - [x] Fix "eBay credentials not configured" error - credentials not being loaded from environment (fixed by server restart)
+
+## Production Deployment Issues
+- [x] eBay credentials not working on published site (sportcards-nropuiaq.manus.space) - fixed by republishing with credentials
+- [x] Fix JSON parse error - eBay API returning HTML instead of JSON - added content-type validation

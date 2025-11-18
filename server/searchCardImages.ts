@@ -98,6 +98,14 @@ async function searchEbay(query: string): Promise<{ urls: string[]; rawData: any
     throw new Error(`eBay search failed: ${response.statusText}`);
   }
 
+  // Check if response is JSON before parsing
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    const errorText = await response.text();
+    console.error(`[eBay Search] Non-JSON response:`, errorText.substring(0, 500));
+    throw new Error(`eBay API returned non-JSON response. Content-Type: ${contentType}`);
+  }
+
   const data = await response.json();
   console.log(`[eBay Search] Raw response:`, JSON.stringify(data, null, 2));
 
