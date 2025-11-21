@@ -77,6 +77,16 @@ export default function AdminManagement() {
   const [editingCollectionType, setEditingCollectionType] = useState<{ id: number; name: string } | null>(null);
   const [collectionTypeName, setCollectionTypeName] = useState("");
 
+  // Team state
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<{ id: number; name: string } | null>(null);
+  const [teamName, setTeamName] = useState("");
+
+  // Autograph Type state
+  const [autographTypeDialogOpen, setAutographTypeDialogOpen] = useState(false);
+  const [editingAutographType, setEditingAutographType] = useState<{ id: number; name: string } | null>(null);
+  const [autographTypeName, setAutographTypeName] = useState("");
+
   // Queries
   const { data: brands, isLoading: brandsLoading } = trpc.brands.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
@@ -99,6 +109,14 @@ export default function AdminManagement() {
   });
 
   const { data: collectionTypes, isLoading: collectionTypesLoading } = trpc.collectionTypes.list.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+
+  const { data: teams, isLoading: teamsLoading } = trpc.teams.list.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+
+  const { data: autographTypes, isLoading: autographTypesLoading } = trpc.autographTypes.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
@@ -320,6 +338,78 @@ export default function AdminManagement() {
     },
   });
 
+  // Team mutations
+  const createTeamMutation = trpc.teams.create.useMutation({
+    onSuccess: () => {
+      utils.teams.list.invalidate();
+      toast.success("Team created successfully");
+      setTeamDialogOpen(false);
+      setTeamName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create team");
+    },
+  });
+
+  const updateTeamMutation = trpc.teams.update.useMutation({
+    onSuccess: () => {
+      utils.teams.list.invalidate();
+      toast.success("Team updated successfully");
+      setTeamDialogOpen(false);
+      setEditingTeam(null);
+      setTeamName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update team");
+    },
+  });
+
+  const deleteTeamMutation = trpc.teams.delete.useMutation({
+    onSuccess: () => {
+      utils.teams.list.invalidate();
+      toast.success("Team deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete team");
+    },
+  });
+
+  // Autograph Type mutations
+  const createAutographTypeMutation = trpc.autographTypes.create.useMutation({
+    onSuccess: () => {
+      utils.autographTypes.list.invalidate();
+      toast.success("Autograph type created successfully");
+      setAutographTypeDialogOpen(false);
+      setAutographTypeName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create autograph type");
+    },
+  });
+
+  const updateAutographTypeMutation = trpc.autographTypes.update.useMutation({
+    onSuccess: () => {
+      utils.autographTypes.list.invalidate();
+      toast.success("Autograph type updated successfully");
+      setAutographTypeDialogOpen(false);
+      setEditingAutographType(null);
+      setAutographTypeName("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update autograph type");
+    },
+  });
+
+  const deleteAutographTypeMutation = trpc.autographTypes.delete.useMutation({
+    onSuccess: () => {
+      utils.autographTypes.list.invalidate();
+      toast.success("Autograph type deleted successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete autograph type");
+    },
+  });
+
   // Handlers
   const handleBrandSubmit = () => {
     if (!brandName.trim()) {
@@ -399,6 +489,32 @@ export default function AdminManagement() {
     }
   };
 
+  const handleTeamSubmit = () => {
+    if (!teamName.trim()) {
+      toast.error("Team name is required");
+      return;
+    }
+
+    if (editingTeam) {
+      updateTeamMutation.mutate({ id: editingTeam.id, name: teamName.trim() });
+    } else {
+      createTeamMutation.mutate({ name: teamName.trim() });
+    }
+  };
+
+  const handleAutographTypeSubmit = () => {
+    if (!autographTypeName.trim()) {
+      toast.error("Autograph type name is required");
+      return;
+    }
+
+    if (editingAutographType) {
+      updateAutographTypeMutation.mutate({ id: editingAutographType.id, name: autographTypeName.trim() });
+    } else {
+      createAutographTypeMutation.mutate({ name: autographTypeName.trim() });
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -460,13 +576,15 @@ export default function AdminManagement() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="brands">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-8">
                 <TabsTrigger value="brands">Brands</TabsTrigger>
                 <TabsTrigger value="series">Series</TabsTrigger>
                 <TabsTrigger value="inserts">Insert</TabsTrigger>
                 <TabsTrigger value="parallels">Parallels</TabsTrigger>
                 <TabsTrigger value="categories">Categories</TabsTrigger>
                 <TabsTrigger value="collectionTypes">Collection Types</TabsTrigger>
+                <TabsTrigger value="teams">Teams</TabsTrigger>
+                <TabsTrigger value="autographTypes">Autograph Types</TabsTrigger>
               </TabsList>
 
               {/* Brands Tab */}
@@ -869,6 +987,135 @@ export default function AdminManagement() {
                   </Table>
                 )}
               </TabsContent>
+              {/* Teams Tab */}
+              <TabsContent value="teams" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Teams</h3>
+                  <Button
+                    onClick={() => {
+                      setEditingTeam(null);
+                      setTeamName("");
+                      setTeamDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Team
+                  </Button>
+                </div>
+
+                {teamsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {teams?.map((team) => (
+                        <TableRow key={team.id}>
+                          <TableCell>{team.name}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingTeam(team);
+                                  setTeamName(team.name);
+                                  setTeamDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  if (confirm("Are you sure you want to delete this team?")) {
+                                    deleteTeamMutation.mutate({ id: team.id });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
+
+              {/* Autograph Types Tab */}
+              <TabsContent value="autographTypes" className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Autograph Types</h3>
+                  <Button
+                    onClick={() => {
+                      setEditingAutographType(null);
+                      setAutographTypeName("");
+                      setAutographTypeDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Autograph Type
+                  </Button>
+                </div>
+
+                {autographTypesLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {autographTypes?.map((type) => (
+                        <TableRow key={type.id}>
+                          <TableCell>{type.name}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingAutographType(type);
+                                  setAutographTypeName(type.name);
+                                  setAutographTypeDialogOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  if (confirm("Are you sure you want to delete this autograph type?")) {
+                                    deleteAutographTypeMutation.mutate({ id: type.id });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -1154,6 +1401,68 @@ export default function AdminManagement() {
               ) : (
                 "Save"
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Team Dialog */}
+      <Dialog open={teamDialogOpen} onOpenChange={setTeamDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingTeam ? "Edit Team" : "Add Team"}</DialogTitle>
+            <DialogDescription>
+              {editingTeam ? "Update the team name" : "Add a new team to the database"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="teamName">Team Name</Label>
+              <Input
+                id="teamName"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder="Enter team name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTeamDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTeamSubmit}>
+              {editingTeam ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Autograph Type Dialog */}
+      <Dialog open={autographTypeDialogOpen} onOpenChange={setAutographTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingAutographType ? "Edit Autograph Type" : "Add Autograph Type"}</DialogTitle>
+            <DialogDescription>
+              {editingAutographType ? "Update the autograph type name" : "Add a new autograph type to the database"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="autographTypeName">Autograph Type Name</Label>
+              <Input
+                id="autographTypeName"
+                value={autographTypeName}
+                onChange={(e) => setAutographTypeName(e.target.value)}
+                placeholder="Enter autograph type name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAutographTypeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAutographTypeSubmit}>
+              {editingAutographType ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
