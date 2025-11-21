@@ -187,3 +187,13 @@
 - [x] Update card routers to save/load new fields
 - [ ] Test Add Card with new fields
 - [ ] Test Edit Card with new fields
+
+## Excel Import/Export Updates for Stage 1 Fields
+- [x] Add Team column to Excel template
+- [x] Add Memorabilia column to Excel template
+- [x] Add Type of Autograph column to Excel template
+- [x] Update column mapping auto-match for new fields
+- [x] Update import validation to handle Team lookup
+- [x] Update import validation to handle Type of Autograph lookup
+- [x] Test Excel template download with new columns
+- [x] Test Excel import with new fields

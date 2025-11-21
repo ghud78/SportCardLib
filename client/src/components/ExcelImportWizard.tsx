@@ -28,19 +28,24 @@ interface ValidationResult {
     series: string[];
     inserts: string[];
     parallels: string[];
+    teams: string[];
+    autographTypes: string[];
   };
   preview: any[];
 }
 
 const DB_FIELDS = [
   { value: "playerName", label: "Player Name", required: true },
+  { value: "teamId", label: "Team", required: false },
   { value: "brandId", label: "Brand", required: false },
   { value: "seriesId", label: "Series", required: false },
   { value: "insertId", label: "Insert", required: false },
-  { value: "parallelId", label: "Specialty", required: false },
+  { value: "parallelId", label: "Parallel", required: false },
+  { value: "memorabilia", label: "Memorabilia", required: false },
   { value: "season", label: "Season / Year", required: true },
   { value: "cardNumber", label: "Card Number", required: true },
   { value: "autograph", label: "Autograph", required: false },
+  { value: "autographTypeId", label: "Type of Autograph", required: false },
   { value: "numbered", label: "Numbered", required: false },
   { value: "numberedCurrent", label: "Current #", required: false },
   { value: "numberedOf", label: "Of #", required: false },
@@ -330,7 +335,9 @@ export default function ExcelImportWizard({
             {(validationResult.missingData.brands.length > 0 ||
               validationResult.missingData.series.length > 0 ||
               validationResult.missingData.inserts.length > 0 ||
-              validationResult.missingData.parallels.length > 0) && (
+              validationResult.missingData.parallels.length > 0 ||
+              validationResult.missingData.teams.length > 0 ||
+              validationResult.missingData.autographTypes.length > 0) && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -353,8 +360,18 @@ export default function ExcelImportWizard({
                     </div>
                   )}
                   {validationResult.missingData.parallels.length > 0 && (
-                    <div>
+                    <div className="mb-2">
                       <strong>Parallels:</strong> {validationResult.missingData.parallels.join(", ")}
+                    </div>
+                  )}
+                  {validationResult.missingData.teams.length > 0 && (
+                    <div className="mb-2">
+                      <strong>Teams:</strong> {validationResult.missingData.teams.join(", ")}
+                    </div>
+                  )}
+                  {validationResult.missingData.autographTypes.length > 0 && (
+                    <div>
+                      <strong>Autograph Types:</strong> {validationResult.missingData.autographTypes.join(", ")}
                     </div>
                   )}
                 </AlertDescription>

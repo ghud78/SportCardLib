@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { getDb } from './db';
-import { cards, brands, series, inserts, parallels } from '../drizzle/schema';
+import { cards, brands, series, inserts, parallels, teams, autographTypes } from '../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 export interface ExcelTemplateColumn {
@@ -12,13 +12,16 @@ export interface ExcelTemplateColumn {
 
 export const TEMPLATE_COLUMNS: ExcelTemplateColumn[] = [
   { header: 'Player Name', field: 'playerName', required: true, example: 'Michael Jordan' },
+  { header: 'Team', field: 'teamId', required: false, example: 'Chicago Bulls' },
   { header: 'Brand', field: 'brandId', required: false, example: 'Panini' },
   { header: 'Series', field: 'seriesId', required: false, example: 'Prizm' },
   { header: 'Insert', field: 'insertId', required: false, example: 'Silver' },
-  { header: 'Specialty', field: 'parallelId', required: false, example: 'Rookie' },
+  { header: 'Parallel', field: 'parallelId', required: false, example: 'Rookie' },
+  { header: 'Memorabilia', field: 'memorabilia', required: false, example: 'Jersey Patch' },
   { header: 'Season / Year', field: 'season', required: true, example: '2012-13' },
   { header: 'Card Number', field: 'cardNumber', required: true, example: '147' },
   { header: 'Autograph', field: 'autograph', required: false, example: 'Yes' },
+  { header: 'Type of Autograph', field: 'autographTypeId', required: false, example: 'On-card' },
   { header: 'Numbered', field: 'numbered', required: false, example: 'Yes' },
   { header: 'Current #', field: 'numberedCurrent', required: false, example: '221' },
   { header: 'Of #', field: 'numberedOf', required: false, example: '499' },
@@ -117,6 +120,8 @@ export interface MissingReferenceData {
   series: string[];
   inserts: string[];
   parallels: string[];
+  teams: string[];
+  autographTypes: string[];
 }
 
 export interface ValidationResult {
@@ -136,6 +141,8 @@ export async function validateImportData(
     series: [],
     inserts: [],
     parallels: [],
+    teams: [],
+    autographTypes: [],
   };
   const preview: any[] = [];
   
@@ -149,11 +156,15 @@ export async function validateImportData(
   const existingSeries = await db.select().from(series);
   const existingInsert = await db.select().from(inserts);
   const existingParallels = await db.select().from(parallels);
+  const existingTeams = await db.select().from(teams);
+  const existingAutographTypes = await db.select().from(autographTypes);
   
   const brandNames = new Set(existingBrands.map(b => b.name.toLowerCase()));
   const seriesNames = new Set(existingSeries.map(s => s.name.toLowerCase()));
   const insertsNames = new Set(existingInsert.map(s => s.name.toLowerCase()));
   const parallelNames = new Set(existingParallels.map(s => s.name.toLowerCase()));
+  const teamNames = new Set(existingTeams.map(t => t.name.toLowerCase()));
+  const autographTypeNames = new Set(existingAutographTypes.map(a => a.name.toLowerCase()));
   
   // Create mapping lookup
   const fieldMap = new Map(mappings.map(m => [m.dbField, m.excelColumn]));
@@ -219,10 +230,24 @@ export async function validateImportData(
       }
     }
     
-    // Check specialty exists
+    // Check parallel exists
     if (cardData.parallelId && !parallelNames.has(cardData.parallelId.toLowerCase())) {
       if (!missingData.parallels.includes(cardData.parallelId)) {
         missingData.parallels.push(cardData.parallelId);
+      }
+    }
+    
+    // Check team exists
+    if (cardData.teamId && !teamNames.has(cardData.teamId.toLowerCase())) {
+      if (!missingData.teams.includes(cardData.teamId)) {
+        missingData.teams.push(cardData.teamId);
+      }
+    }
+    
+    // Check autograph type exists
+    if (cardData.autographTypeId && !autographTypeNames.has(cardData.autographTypeId.toLowerCase())) {
+      if (!missingData.autographTypes.includes(cardData.autographTypeId)) {
+        missingData.autographTypes.push(cardData.autographTypeId);
       }
     }
     
@@ -236,7 +261,9 @@ export async function validateImportData(
     missingData.brands.length > 0 ||
     missingData.series.length > 0 ||
     missingData.inserts.length > 0 ||
-    missingData.parallels.length > 0;
+    missingData.parallels.length > 0 ||
+    missingData.teams.length > 0 ||
+    missingData.autographTypes.length > 0;
   
   return {
     valid: errors.length === 0 && !hasMissingData,
@@ -261,11 +288,15 @@ export async function importCards(
   const existingSeries = await db.select().from(series);
   const existingInsert = await db.select().from(inserts);
   const existingParallels = await db.select().from(parallels);
+  const existingTeams = await db.select().from(teams);
+  const existingAutographTypes = await db.select().from(autographTypes);
   
   const brandMap = new Map(existingBrands.map(b => [b.name.toLowerCase(), b.id]));
   const seriesMap = new Map(existingSeries.map(s => [s.name.toLowerCase(), s.id]));
   const insertsMap = new Map(existingInsert.map(s => [s.name.toLowerCase(), s.id]));
-  const specialtyMap = new Map(existingParallels.map(s => [s.name.toLowerCase(), s.id]));
+  const parallelMap = new Map(existingParallels.map(s => [s.name.toLowerCase(), s.id]));
+  const teamMap = new Map(existingTeams.map(t => [t.name.toLowerCase(), t.id]));
+  const autographTypeMap = new Map(existingAutographTypes.map(a => [a.name.toLowerCase(), a.id]));
   
   const fieldMap = new Map(mappings.map(m => [m.dbField, m.excelColumn]));
   
@@ -285,7 +316,13 @@ export async function importCards(
       } else if (dbField === 'insertId' && value) {
         cardData.insertId = insertsMap.get(value.toLowerCase()) || null;
       } else if (dbField === 'parallelId' && value) {
-        cardData.parallelId = specialtyMap.get(value.toLowerCase()) || null;
+        cardData.parallelId = parallelMap.get(value.toLowerCase()) || null;
+      } else if (dbField === 'teamId' && value) {
+        cardData.teamId = teamMap.get(value.toLowerCase()) || null;
+      } else if (dbField === 'autographTypeId' && value) {
+        cardData.autographTypeId = autographTypeMap.get(value.toLowerCase()) || null;
+      } else if (dbField === 'memorabilia' && value) {
+        cardData.memorabilia = value;
       } else if (dbField === 'autograph') {
         cardData.autograph = value.toLowerCase() === 'yes' || value.toLowerCase() === 'true';
       } else if (dbField === 'numbered') {
