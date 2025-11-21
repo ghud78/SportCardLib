@@ -33,14 +33,17 @@ export default function AddCard() {
   const collectionId = params?.id ? parseInt(params.id) : null;
 
   const [playerName, setPlayerName] = useState("");
+  const [teamId, setTeamId] = useState<number | null>(null);
   const [brandId, setBrandId] = useState<number | null>(null);
   const [previousBrandId, setPreviousBrandId] = useState<number | null>(null);
   const [seriesId, setSeriesId] = useState<number | null>(null);
   const [insertId, setInsertId] = useState<number | null>(null);
   const [parallelId, setSpecialtyId] = useState<number | null>(null);
+  const [memorabilia, setMemorabilia] = useState("");
   const [season, setSeason] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [isAutograph, setIsAutograph] = useState(false);
+  const [autographTypeId, setAutographTypeId] = useState<number | null>(null);
   const [isNumbered, setIsNumbered] = useState(false);
   const [numberedCurrent, setNumberedCurrent] = useState("");
   const [numberedOf, setNumberedOf] = useState("");
@@ -74,6 +77,14 @@ export default function AddCard() {
   const filteredInsert = inserts?.filter((sub) => !sub.seriesId || sub.seriesId === seriesId);
 
   const { data: parallels } = trpc.parallels.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: teams } = trpc.teams.list.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+
+  const { data: autographTypes } = trpc.autographTypes.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
@@ -143,13 +154,16 @@ export default function AddCard() {
     createCardMutation.mutate({
       collectionId,
       playerName: playerName.trim(),
+      teamId: teamId || undefined,
       brandId: brandId || undefined,
       seriesId: seriesId || undefined,
       insertId: insertId || undefined,
       parallelId: parallelId || undefined,
+      memorabilia: memorabilia.trim() || undefined,
       season: season.trim(),
       cardNumber: cardNumber.trim(),
       isAutograph,
+      autographTypeId: isAutograph && autographTypeId ? autographTypeId : undefined,
       isNumbered,
       numberedCurrent: isNumbered && numberedCurrent ? parseInt(numberedCurrent) : undefined,
       numberedOf: isNumbered && numberedOf ? parseInt(numberedOf) : undefined,
@@ -235,6 +249,25 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="team">Team (Optional)</Label>
+                  <Select
+                    value={teamId?.toString()}
+                    onValueChange={(v) => setTeamId(v ? parseInt(v) : null)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select team (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams?.map((team) => (
+                        <SelectItem key={team.id} value={team.id.toString()}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="brand">Brand (Optional)</Label>
                   <Select
                     value={brandId?.toString()}
@@ -303,19 +336,29 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialty">Specialty (Optional)</Label>
+                  <Label htmlFor="parallel">Parallel (Optional)</Label>
                   <Select value={parallelId?.toString()} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select specialty (optional)" />
+                      <SelectValue placeholder="Select parallel (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      {parallels?.map((specialty) => (
-                        <SelectItem key={specialty.id} value={specialty.id.toString()}>
-                          {specialty.name}
+                      {parallels?.map((parallel) => (
+                        <SelectItem key={parallel.id} value={parallel.id.toString()}>
+                          {parallel.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="memorabilia">Memorabilia (Optional)</Label>
+                  <Input
+                    id="memorabilia"
+                    value={memorabilia}
+                    onChange={(e) => setMemorabilia(e.target.value)}
+                    placeholder="e.g., Jersey Patch, Game-Used Ball"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -349,6 +392,27 @@ export default function AddCard() {
                       Autograph
                     </Label>
                   </div>
+
+                  {isAutograph && (
+                    <div className="space-y-2 ml-6">
+                      <Label htmlFor="autographType">Type of Autograph (Optional)</Label>
+                      <Select
+                        value={autographTypeId?.toString()}
+                        onValueChange={(v) => setAutographTypeId(v ? parseInt(v) : null)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select autograph type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {autographTypes?.map((type) => (
+                            <SelectItem key={type.id} value={type.id.toString()}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">

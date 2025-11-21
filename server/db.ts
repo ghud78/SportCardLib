@@ -146,13 +146,16 @@ export async function getCardById(cardId: number) {
 export async function createCard(data: {
   collectionId: number;
   playerName: string;
+  teamId?: number;
   brandId?: number;
   seriesId?: number;
   insertId?: number;
   parallelId?: number;
+  memorabilia?: string;
   season: string;
   cardNumber: string;
   isAutograph?: number;
+  autographTypeId?: number;
   isNumbered?: number;
   numberedOf?: number;
   numberedCurrent?: number;
@@ -171,13 +174,16 @@ export async function updateCard(
   cardId: number,
   data: {
     playerName?: string;
+    teamId?: number;
     brandId?: number;
     seriesId?: number;
     insertId?: number;
     parallelId?: number;
+    memorabilia?: string;
     season?: string;
     cardNumber?: string;
     isAutograph?: number;
+    autographTypeId?: number;
     isNumbered?: number;
     numberedOf?: number;
     numberedCurrent?: number;

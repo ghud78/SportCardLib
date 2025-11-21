@@ -176,3 +176,14 @@
 - [ ] Update card add/edit forms with new fields
 - [ ] Update Excel import template with new columns
 - [ ] Add validation for grade quality (numeric vs text based on grade type)
+
+## Stage 1 UI Implementation
+- [x] Update Add Card form with Team dropdown
+- [x] Update Add Card form with Memorabilia text field
+- [x] Update Add Card form with Type of Autograph dropdown
+- [x] Update Edit Card form with Team dropdown
+- [x] Update Edit Card form with Memorabilia text field
+- [x] Update Edit Card form with Type of Autograph dropdown
+- [x] Update card routers to save/load new fields
+- [ ] Test Add Card with new fields
+- [ ] Test Edit Card with new fields
