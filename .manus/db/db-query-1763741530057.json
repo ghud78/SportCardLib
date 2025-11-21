@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO autographTypes (name) VALUES \n  ('On-card'),\n  ('Sticker'),\n  ('Cloth'),\n  ('Floor'),\n  ('Ball'),\n  ('Shoes'),\n  ('Other')\nON DUPLICATE KEY UPDATE name=name;\n\nINSERT INTO gradeCompanies (name) VALUES \n  ('PSA'),\n  ('BGS'),\n  ('CGC'),\n  ('SGC')\nON DUPLICATE KEY UPDATE name=name;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute INSERT INTO autographTypes (name) VALUES \n  ('On-card'),\n  ('Sticker'),\n  ('Cloth'),\n  ('Floor'),\n  ('Ball'),\n  ('Shoes'),\n  ('Other')\nON DUPLICATE KEY UPDATE name=name;\n\nINSERT INTO gradeCompanies (name) VALUES \n  ('PSA'),\n  ('BGS'),\n  ('CGC'),\n  ('SGC')\nON DUPLICATE KEY UPDATE name=name;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 81
+}

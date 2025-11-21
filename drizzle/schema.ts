@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, double } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -49,16 +49,22 @@ export const cards = mysqlTable("cards", {
   id: int("id").autoincrement().primaryKey(),
   collectionId: int("collectionId").notNull(),
   playerName: varchar("playerName", { length: 255 }).notNull(),
+  teamId: int("teamId"), // Team dropdown
   brandId: int("brandId"),
   seriesId: int("seriesId"),
-  subseriesId: int("subseriesId"),
-  specialtyId: int("specialtyId"),
+  insertId: int("insertId"), // Renamed from subseriesId
+  parallelId: int("parallelId"), // Renamed from specialtyId
+  memorabilia: text("memorabilia"), // Simple text field
   season: varchar("season", { length: 50 }).notNull(), // e.g., "1998-99" or "2014-15"
   cardNumber: varchar("cardNumber", { length: 100 }).notNull(), // e.g., "214" or "ST-XYZ"
   isAutograph: int("isAutograph").default(0).notNull(), // 0 = false, 1 = true
+  autographTypeId: int("autographTypeId"), // Type of Autograph dropdown
   isNumbered: int("isNumbered").default(0).notNull(), // 0 = false, 1 = true
   numberedOf: int("numberedOf"), // Maximum number (e.g., 99 in "25/99")
   numberedCurrent: int("numberedCurrent"), // Current number (e.g., 25 in "25/99")
+  isGraded: int("isGraded").default(0).notNull(), // 0 = false, 1 = true
+  gradeCompanyId: int("gradeCompanyId"), // Grade Company dropdown
+  gradeSerialNumber: varchar("gradeSerialNumber", { length: 40 }), // Grading cert number
   imageFrontUrl: text("imageFrontUrl"), // URL to front image of the card
   imageBackUrl: text("imageBackUrl"), // URL to back image of the card
   notes: text("notes"),
@@ -68,6 +74,57 @@ export const cards = mysqlTable("cards", {
 
 export type Card = typeof cards.$inferSelect;
 export type InsertCard = typeof cards.$inferInsert;
+
+/**
+ * Card Grades table - stores multiple grade entries per card
+ * A card can have multiple grades (e.g., BGS has Centering, Corners, Surface, Edges, Overall)
+ */
+export const cardGrades = mysqlTable("cardGrades", {
+  id: int("id").autoincrement().primaryKey(),
+  cardId: int("cardId").notNull().references(() => cards.id, { onDelete: "cascade" }),
+  gradeType: mysqlEnum("gradeType", ["Centering", "Corners", "Surface", "Edges", "Overall", "Autograph"]).notNull(),
+  gradeQuality: varchar("gradeQuality", { length: 20 }).notNull(), // Can be numeric (9.5) or text (Authentic)
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CardGrade = typeof cardGrades.$inferSelect;
+export type InsertCardGrade = typeof cardGrades.$inferInsert;
+
+/**
+ * Teams table - admin-managed list of teams
+ */
+export const teams = mysqlTable("teams", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = typeof teams.$inferInsert;
+
+/**
+ * Autograph Types table - admin-managed list of autograph types
+ */
+export const autographTypes = mysqlTable("autographTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AutographType = typeof autographTypes.$inferSelect;
+export type InsertAutographType = typeof autographTypes.$inferInsert;
+
+/**
+ * Grade Companies table - admin-managed list of grading companies
+ */
+export const gradeCompanies = mysqlTable("gradeCompanies", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GradeCompany = typeof gradeCompanies.$inferSelect;
+export type InsertGradeCompany = typeof gradeCompanies.$inferInsert;
 
 /**
  * Brands table - admin-managed list of card brands
@@ -96,29 +153,29 @@ export type Series = typeof series.$inferSelect;
 export type InsertSeries = typeof series.$inferInsert;
 
 /**
- * Subseries table - admin-managed list of card subseries (1:n with series)
+ * Inserts table - admin-managed list of card inserts (renamed from subseries)
  */
-export const subseries = mysqlTable("subseries", {
+export const inserts = mysqlTable("inserts", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   seriesId: int("seriesId").references(() => series.id, { onDelete: "cascade" }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export type Subseries = typeof subseries.$inferSelect;
-export type InsertSubseries = typeof subseries.$inferInsert;
+export type Insert = typeof inserts.$inferSelect;
+export type InsertInsert = typeof inserts.$inferInsert;
 
 /**
- * Specialties table - admin-managed list of card specialties
+ * Parallels table - admin-managed list of card parallels (renamed from specialties)
  */
-export const specialties = mysqlTable("specialties", {
+export const parallels = mysqlTable("parallels", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 255 }).notNull().unique(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
-export type Specialty = typeof specialties.$inferSelect;
-export type InsertSpecialty = typeof specialties.$inferInsert;
+export type Parallel = typeof parallels.$inferSelect;
+export type InsertParallel = typeof parallels.$inferInsert;
 
 /**
  * Categories table - admin-managed list of collection categories (Basketball, Baseball, F1, etc.)

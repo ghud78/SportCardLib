@@ -160,3 +160,19 @@
 - [x] Implement bulk card import API endpoint
 - [x] Add error handling - cancel entire import if any validation errors
 - [x] Test complete import flow with sample data
+
+## Card Data Model Updates
+- [x] Add Team field (dropdown, editable in Admin Panel)
+- [x] Add Memorabilia field (simple text field)
+- [x] Rename Subseries → Insert (UI + DB)
+- [x] Rename Specialty → Parallel (UI + DB)
+- [ ] Add Type of Autograph field (dropdown: On-card, Sticker, Cloth, Floor, Ball, Shoes, Other)
+- [ ] Add Graded field (Yes/No checkbox)
+- [ ] Add Grade Company field (dropdown: PSA, BGS, CGC, SGC, editable in Admin Panel)
+- [ ] Add Grade Type field (dropdown: Centering, Corners, Surface, Edges, Overall, Autograph)
+- [ ] Add Grade Quality field (number 1-10 in 0.5 increments, or text when Type=Autograph)
+- [ ] Add Grading Serial Number field (text, 40 chars, only when Graded=Yes)
+- [ ] Create Grading section in Admin Panel
+- [ ] Update card add/edit forms with new fields
+- [ ] Update Excel import template with new columns
+- [ ] Add validation for grade quality (numeric vs text based on grade type)

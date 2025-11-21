@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE cards \n  CHANGE COLUMN subseriesId insertId INT,\n  CHANGE COLUMN specialtyId parallelId INT;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute ALTER TABLE cards \n  CHANGE COLUMN subseriesId insertId INT,\n  CHANGE COLUMN specialtyId parallelId INT;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 274
+}

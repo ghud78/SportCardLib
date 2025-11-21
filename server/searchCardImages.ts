@@ -2,8 +2,8 @@ interface CardSearchParams {
   playerName: string;
   brandName?: string;
   seriesName?: string;
-  subseriesName?: string;
-  specialtyName?: string;
+  insertsName?: string;
+  parallelName?: string;
   season: string;
   cardNumber: string;
   isAutograph: boolean;
@@ -144,14 +144,14 @@ export async function searchCardImages(params: CardSearchParams): Promise<Search
   // Player name
   queryParts.push(params.playerName);
 
-  // Subseries
-  if (params.subseriesName) {
-    queryParts.push(params.subseriesName);
+  // Insert
+  if (params.insertsName) {
+    queryParts.push(params.insertsName);
   }
 
   // Specialty
-  if (params.specialtyName && params.specialtyName !== "Base") {
-    queryParts.push(params.specialtyName);
+  if (params.parallelName && params.parallelName !== "Base") {
+    queryParts.push(params.parallelName);
   }
 
   // Card number with # prefix

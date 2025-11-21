@@ -95,8 +95,8 @@ export const appRouter = router({
           playerName: z.string(),
           brandName: z.string().optional(),
           seriesName: z.string().optional(),
-          subseriesName: z.string().optional(),
-          specialtyName: z.string().optional(),
+          insertsName: z.string().optional(),
+          parallelName: z.string().optional(),
           season: z.string(),
           cardNumber: z.string(),
           isAutograph: z.boolean(),
@@ -130,8 +130,8 @@ export const appRouter = router({
           playerName: z.string().min(1, "Player name is required"),
           brandId: z.number().nullable().optional(),
           seriesId: z.number().nullable().optional(),
-          subseriesId: z.number().nullable().optional(),
-          specialtyId: z.number().nullable().optional(),
+          insertId: z.number().nullable().optional(),
+          parallelId: z.number().nullable().optional(),
           season: z.string().min(1, "Season is required"),
           cardNumber: z.string().min(1, "Card number is required"),
           isAutograph: z.boolean().optional(),
@@ -154,8 +154,8 @@ export const appRouter = router({
           playerName: input.playerName,
           brandId: input.brandId ?? undefined,
           seriesId: input.seriesId ?? undefined,
-          subseriesId: input.subseriesId ?? undefined,
-          specialtyId: input.specialtyId ?? undefined,
+          insertId: input.insertId ?? undefined,
+          parallelId: input.parallelId ?? undefined,
           season: input.season,
           cardNumber: input.cardNumber,
           isAutograph: input.isAutograph ? 1 : 0,
@@ -174,8 +174,8 @@ export const appRouter = router({
           playerName: z.string().min(1),
           brandId: z.number().nullable().optional(),
           seriesId: z.number().nullable().optional(),
-          subseriesId: z.number().nullable().optional(),
-          specialtyId: z.number().nullable().optional(),
+          insertId: z.number().nullable().optional(),
+          parallelId: z.number().nullable().optional(),
           season: z.string().min(1).optional(),
           cardNumber: z.string().min(1).optional(),
           isAutograph: z.boolean().optional(),
@@ -280,37 +280,37 @@ export const appRouter = router({
       }),
   }),
 
-  subseries: router({
+  inserts: router({
     list: protectedProcedure.query(async () => {
-      const { getAllSubseries } = await import("./db");
-      return getAllSubseries();
+      const { getAllInsert } = await import("./db");
+      return getAllInsert();
     }),
     create: adminProcedure
       .input(z.object({ name: z.string().min(1), seriesId: z.number().nullable() }))
       .mutation(async ({ input }) => {
-        const { createSubseries } = await import("./db");
-        return createSubseries(input.name, input.seriesId);
+        const { createInsert } = await import("./db");
+        return createInsert(input.name, input.seriesId);
       }),
     update: adminProcedure
       .input(z.object({ id: z.number(), name: z.string().min(1), seriesId: z.number().nullable() }))
       .mutation(async ({ input }) => {
-        const { updateSubseries } = await import("./db");
-        await updateSubseries(input.id, input.name, input.seriesId);
+        const { updateInsert } = await import("./db");
+        await updateInsert(input.id, input.name, input.seriesId);
         return { success: true };
       }),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        const { deleteSubseries } = await import("./db");
-        await deleteSubseries(input.id);
+        const { deleteInsert } = await import("./db");
+        await deleteInsert(input.id);
         return { success: true };
       }),
   }),
 
-  specialties: router({
+  parallels: router({
     list: protectedProcedure.query(async () => {
-      const { getAllSpecialties } = await import("./db");
-      return getAllSpecialties();
+      const { getAllParallels } = await import("./db");
+      return getAllParallels();
     }),
     create: adminProcedure
       .input(z.object({ name: z.string().min(1) }))
@@ -457,6 +457,60 @@ export const appRouter = router({
         await importCards(input.collectionId, parsed.rows, input.mappings);
         
         return { success: true, importedCount: parsed.rows.length };
+      }),
+  }),
+
+  teams: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllTeams } = await import("./db");
+      return getAllTeams();
+    }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createTeam } = await import("./db");
+        return createTeam(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateTeam } = await import("./db");
+        await updateTeam(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteTeam } = await import("./db");
+        await deleteTeam(input.id);
+        return { success: true };
+      }),
+  }),
+
+  autographTypes: router({
+    list: protectedProcedure.query(async () => {
+      const { getAllAutographTypes } = await import("./db");
+      return getAllAutographTypes();
+    }),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { createAutographType } = await import("./db");
+        return createAutographType(input.name);
+      }),
+    update: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { updateAutographType } = await import("./db");
+        await updateAutographType(input.id, input.name);
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteAutographType } = await import("./db");
+        await deleteAutographType(input.id);
+        return { success: true };
       }),
   }),
 });

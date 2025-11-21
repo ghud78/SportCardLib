@@ -56,16 +56,16 @@ export default function AdminManagement() {
   const [seriesName, setSeriesName] = useState("");
   const [seriesBrandId, setSeriesBrandId] = useState<number | null>(null);
 
-  // Subseries state
-  const [subseriesDialogOpen, setSubseriesDialogOpen] = useState(false);
-  const [editingSubseries, setEditingSubseries] = useState<{ id: number; name: string; seriesId: number | null } | null>(null);
-  const [subseriesName, setSubseriesName] = useState("");
-  const [subseriesSeriesId, setSubseriesSeriesId] = useState<number | null>(null);
+  // Insert state
+  const [insertsDialogOpen, setInsertDialogOpen] = useState(false);
+  const [editingInsert, setEditingInsert] = useState<{ id: number; name: string; seriesId: number | null } | null>(null);
+  const [insertsName, setInsertName] = useState("");
+  const [insertsSeriesId, setInsertSeriesId] = useState<number | null>(null);
 
   // Specialty state
   const [specialtyDialogOpen, setSpecialtyDialogOpen] = useState(false);
   const [editingSpecialty, setEditingSpecialty] = useState<{ id: number; name: string } | null>(null);
-  const [specialtyName, setSpecialtyName] = useState("");
+  const [parallelName, setSpecialtyName] = useState("");
 
   // Category state
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -86,11 +86,11 @@ export default function AdminManagement() {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
-  const { data: subseries, isLoading: subseriesLoading } = trpc.subseries.list.useQuery(undefined, {
+  const { data: inserts, isLoading: insertsLoading } = trpc.inserts.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
-  const { data: specialties, isLoading: specialtiesLoading } = trpc.specialties.list.useQuery(undefined, {
+  const { data: parallels, isLoading: parallelsLoading } = trpc.parallels.list.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === "admin",
   });
 
@@ -174,48 +174,48 @@ export default function AdminManagement() {
     },
   });
 
-  // Subseries mutations
-  const createSubseriesMutation = trpc.subseries.create.useMutation({
+  // Insert mutations
+  const createInsertMutation = trpc.inserts.create.useMutation({
     onSuccess: () => {
-      utils.subseries.list.invalidate();
-      toast.success("Subseries created successfully");
-      setSubseriesDialogOpen(false);
-      setSubseriesName("");
-      setSubseriesSeriesId(null);
+      utils.inserts.list.invalidate();
+      toast.success("Insert created successfully");
+      setInsertDialogOpen(false);
+      setInsertName("");
+      setInsertSeriesId(null);
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create subseries");
+      toast.error(error.message || "Failed to create inserts");
     },
   });
 
-  const updateSubseriesMutation = trpc.subseries.update.useMutation({
+  const updateInsertMutation = trpc.inserts.update.useMutation({
     onSuccess: () => {
-      utils.subseries.list.invalidate();
-      toast.success("Subseries updated successfully");
-      setSubseriesDialogOpen(false);
-      setEditingSubseries(null);
-      setSubseriesName("");
-      setSubseriesSeriesId(null);
+      utils.inserts.list.invalidate();
+      toast.success("Insert updated successfully");
+      setInsertDialogOpen(false);
+      setEditingInsert(null);
+      setInsertName("");
+      setInsertSeriesId(null);
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to update subseries");
+      toast.error(error.message || "Failed to update inserts");
     },
   });
 
-  const deleteSubseriesMutation = trpc.subseries.delete.useMutation({
+  const deleteInsertMutation = trpc.inserts.delete.useMutation({
     onSuccess: () => {
-      utils.subseries.list.invalidate();
-      toast.success("Subseries deleted successfully");
+      utils.inserts.list.invalidate();
+      toast.success("Insert deleted successfully");
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to delete subseries");
+      toast.error(error.message || "Failed to delete inserts");
     },
   });
 
   // Specialty mutations
-  const createSpecialtyMutation = trpc.specialties.create.useMutation({
+  const createSpecialtyMutation = trpc.parallels.create.useMutation({
     onSuccess: () => {
-      utils.specialties.list.invalidate();
+      utils.parallels.list.invalidate();
       toast.success("Specialty created successfully");
       setSpecialtyDialogOpen(false);
       setSpecialtyName("");
@@ -225,9 +225,9 @@ export default function AdminManagement() {
     },
   });
 
-  const updateSpecialtyMutation = trpc.specialties.update.useMutation({
+  const updateSpecialtyMutation = trpc.parallels.update.useMutation({
     onSuccess: () => {
-      utils.specialties.list.invalidate();
+      utils.parallels.list.invalidate();
       toast.success("Specialty updated successfully");
       setSpecialtyDialogOpen(false);
       setEditingSpecialty(null);
@@ -238,9 +238,9 @@ export default function AdminManagement() {
     },
   });
 
-  const deleteSpecialtyMutation = trpc.specialties.delete.useMutation({
+  const deleteSpecialtyMutation = trpc.parallels.delete.useMutation({
     onSuccess: () => {
-      utils.specialties.list.invalidate();
+      utils.parallels.list.invalidate();
       toast.success("Specialty deleted successfully");
     },
     onError: (error) => {
@@ -347,29 +347,29 @@ export default function AdminManagement() {
     }
   };
 
-  const handleSubseriesSubmit = () => {
-    if (!subseriesName.trim()) {
-      toast.error("Subseries name is required");
+  const handleInsertSubmit = () => {
+    if (!insertsName.trim()) {
+      toast.error("Insert name is required");
       return;
     }
 
-    if (editingSubseries) {
-      updateSubseriesMutation.mutate({ id: editingSubseries.id, name: subseriesName.trim(), seriesId: subseriesSeriesId });
+    if (editingInsert) {
+      updateInsertMutation.mutate({ id: editingInsert.id, name: insertsName.trim(), seriesId: insertsSeriesId });
     } else {
-      createSubseriesMutation.mutate({ name: subseriesName.trim(), seriesId: subseriesSeriesId });
+      createInsertMutation.mutate({ name: insertsName.trim(), seriesId: insertsSeriesId });
     }
   };
 
   const handleSpecialtySubmit = () => {
-    if (!specialtyName.trim()) {
+    if (!parallelName.trim()) {
       toast.error("Specialty name is required");
       return;
     }
 
     if (editingSpecialty) {
-      updateSpecialtyMutation.mutate({ id: editingSpecialty.id, name: specialtyName.trim() });
+      updateSpecialtyMutation.mutate({ id: editingSpecialty.id, name: parallelName.trim() });
     } else {
-      createSpecialtyMutation.mutate({ name: specialtyName.trim() });
+      createSpecialtyMutation.mutate({ name: parallelName.trim() });
     }
   };
 
@@ -456,15 +456,15 @@ export default function AdminManagement() {
         <Card>
           <CardHeader>
             <CardTitle className="text-3xl">Admin Management</CardTitle>
-            <CardDescription>Manage brands, series, and specialties</CardDescription>
+            <CardDescription>Manage brands, series, and parallels</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="brands">
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="brands">Brands</TabsTrigger>
                 <TabsTrigger value="series">Series</TabsTrigger>
-                <TabsTrigger value="subseries">Subseries</TabsTrigger>
-                <TabsTrigger value="specialties">Specialties</TabsTrigger>
+                <TabsTrigger value="inserts">Insert</TabsTrigger>
+                <TabsTrigger value="parallels">Parallels</TabsTrigger>
                 <TabsTrigger value="categories">Categories</TabsTrigger>
                 <TabsTrigger value="collectionTypes">Collection Types</TabsTrigger>
               </TabsList>
@@ -602,24 +602,24 @@ export default function AdminManagement() {
                 )}
               </TabsContent>
 
-              {/* Subseries Tab */}
-              <TabsContent value="subseries" className="space-y-4">
+              {/* Insert Tab */}
+              <TabsContent value="inserts" className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Subseries</h3>
+                  <h3 className="text-lg font-semibold">Insert</h3>
                   <Button
                     onClick={() => {
-                      setEditingSubseries(null);
-                      setSubseriesName("");
-                      setSubseriesSeriesId(null);
-                      setSubseriesDialogOpen(true);
+                      setEditingInsert(null);
+                      setInsertName("");
+                      setInsertSeriesId(null);
+                      setInsertDialogOpen(true);
                     }}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Subseries
+                    Add Insert
                   </Button>
                 </div>
 
-                {subseriesLoading ? (
+                {insertsLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
@@ -633,7 +633,7 @@ export default function AdminManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {subseries?.map((sub) => (
+                      {inserts?.map((sub) => (
                         <TableRow key={sub.id}>
                           <TableCell className="font-medium">{sub.name}</TableCell>
                           <TableCell>
@@ -645,10 +645,10 @@ export default function AdminManagement() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => {
-                                  setEditingSubseries(sub);
-                                  setSubseriesName(sub.name);
-                                  setSubseriesSeriesId(sub.seriesId);
-                                  setSubseriesDialogOpen(true);
+                                  setEditingInsert(sub);
+                                  setInsertName(sub.name);
+                                  setInsertSeriesId(sub.seriesId);
+                                  setInsertDialogOpen(true);
                                 }}
                               >
                                 <Edit className="h-4 w-4" />
@@ -657,11 +657,11 @@ export default function AdminManagement() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => {
-                                  if (confirm(`Delete subseries "${sub.name}"?`)) {
-                                    deleteSubseriesMutation.mutate({ id: sub.id });
+                                  if (confirm(`Delete inserts "${sub.name}"?`)) {
+                                    deleteInsertMutation.mutate({ id: sub.id });
                                   }
                                 }}
-                                disabled={deleteSubseriesMutation.isPending}
+                                disabled={deleteInsertMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
@@ -674,10 +674,10 @@ export default function AdminManagement() {
                 )}
               </TabsContent>
 
-              {/* Specialties Tab */}
-              <TabsContent value="specialties" className="space-y-4">
+              {/* Parallels Tab */}
+              <TabsContent value="parallels" className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Specialties</h3>
+                  <h3 className="text-lg font-semibold">Parallels</h3>
                   <Button
                     onClick={() => {
                       setEditingSpecialty(null);
@@ -690,7 +690,7 @@ export default function AdminManagement() {
                   </Button>
                 </div>
 
-                {specialtiesLoading ? (
+                {parallelsLoading ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
@@ -703,7 +703,7 @@ export default function AdminManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {specialties?.map((specialty) => (
+                      {parallels?.map((specialty) => (
                         <TableRow key={specialty.id}>
                           <TableCell className="font-medium">{specialty.name}</TableCell>
                           <TableCell className="text-right">
@@ -973,33 +973,33 @@ export default function AdminManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Subseries Dialog */}
-      <Dialog open={subseriesDialogOpen} onOpenChange={setSubseriesDialogOpen}>
+      {/* Insert Dialog */}
+      <Dialog open={insertsDialogOpen} onOpenChange={setInsertDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingSubseries ? "Edit Subseries" : "Add Subseries"}</DialogTitle>
+            <DialogTitle>{editingInsert ? "Edit Insert" : "Add Insert"}</DialogTitle>
             <DialogDescription>
-              {editingSubseries ? "Update the subseries details" : "Create a new subseries"}
+              {editingInsert ? "Update the inserts details" : "Create a new inserts"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="subseriesName">Subseries Name</Label>
+              <Label htmlFor="insertsName">Insert Name</Label>
               <Input
-                id="subseriesName"
-                value={subseriesName}
-                onChange={(e) => setSubseriesName(e.target.value)}
+                id="insertsName"
+                value={insertsName}
+                onChange={(e) => setInsertName(e.target.value)}
                 placeholder="e.g., Silver, Gold, Base"
                 autoFocus
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="subseriesSeries">Series (Optional)</Label>
+              <Label htmlFor="insertsSeries">Series (Optional)</Label>
               <Select
-                value={subseriesSeriesId?.toString() || ""}
-                onValueChange={(value) => setSubseriesSeriesId(value ? parseInt(value) : null)}
+                value={insertsSeriesId?.toString() || ""}
+                onValueChange={(value) => setInsertSeriesId(value ? parseInt(value) : null)}
               >
-                <SelectTrigger id="subseriesSeries">
+                <SelectTrigger id="insertsSeries">
                   <SelectValue placeholder="Select series" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1013,14 +1013,14 @@ export default function AdminManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSubseriesDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setInsertDialogOpen(false)}>
               Cancel
             </Button>
             <Button
-              onClick={handleSubseriesSubmit}
-              disabled={createSubseriesMutation.isPending || updateSubseriesMutation.isPending}
+              onClick={handleInsertSubmit}
+              disabled={createInsertMutation.isPending || updateInsertMutation.isPending}
             >
-              {createSubseriesMutation.isPending || updateSubseriesMutation.isPending ? (
+              {createInsertMutation.isPending || updateInsertMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
@@ -1044,10 +1044,10 @@ export default function AdminManagement() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="specialtyName">Specialty Name</Label>
+              <Label htmlFor="parallelName">Specialty Name</Label>
               <Input
-                id="specialtyName"
-                value={specialtyName}
+                id="parallelName"
+                value={parallelName}
                 onChange={(e) => setSpecialtyName(e.target.value)}
                 placeholder="e.g., Rookie Card"
                 autoFocus

@@ -47,7 +47,7 @@ export default function CollectionDetail() {
     enabled: isAuthenticated,
   });
 
-  const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
+  const { data: parallels } = trpc.parallels.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
@@ -61,9 +61,9 @@ export default function CollectionDetail() {
     return series?.find(s => s.id === seriesId)?.name || "-";
   };
 
-  const getSpecialtyName = (specialtyId: number | null) => {
-    if (!specialtyId) return "-";
-    return specialties?.find(s => s.id === specialtyId)?.name || "-";
+  const getSpecialtyName = (parallelId: number | null) => {
+    if (!parallelId) return "-";
+    return parallels?.find(s => s.id === parallelId)?.name || "-";
   };
 
   const deleteCardMutation = trpc.cards.delete.useMutation({
@@ -187,7 +187,7 @@ export default function CollectionDetail() {
                         <TableCell className="font-medium">{card.playerName}</TableCell>
                         <TableCell>{getBrandName(card.brandId)}</TableCell>
                         <TableCell>{getSeriesName(card.seriesId)}</TableCell>
-                        <TableCell>{getSpecialtyName(card.specialtyId)}</TableCell>
+                        <TableCell>{getSpecialtyName(card.parallelId)}</TableCell>
                         <TableCell>{card.season}</TableCell>
                         <TableCell>
                           {card.cardNumber}

@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { getDb } from './db';
-import { cards, brands, series, subseries, specialties } from '../drizzle/schema';
+import { cards, brands, series, inserts, parallels } from '../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 export interface ExcelTemplateColumn {
@@ -14,8 +14,8 @@ export const TEMPLATE_COLUMNS: ExcelTemplateColumn[] = [
   { header: 'Player Name', field: 'playerName', required: true, example: 'Michael Jordan' },
   { header: 'Brand', field: 'brandId', required: false, example: 'Panini' },
   { header: 'Series', field: 'seriesId', required: false, example: 'Prizm' },
-  { header: 'Subseries', field: 'subseriesId', required: false, example: 'Silver' },
-  { header: 'Specialty', field: 'specialtyId', required: false, example: 'Rookie' },
+  { header: 'Insert', field: 'insertId', required: false, example: 'Silver' },
+  { header: 'Specialty', field: 'parallelId', required: false, example: 'Rookie' },
   { header: 'Season / Year', field: 'season', required: true, example: '2012-13' },
   { header: 'Card Number', field: 'cardNumber', required: true, example: '147' },
   { header: 'Autograph', field: 'autograph', required: false, example: 'Yes' },
@@ -115,8 +115,8 @@ export interface ValidationError {
 export interface MissingReferenceData {
   brands: string[];
   series: string[];
-  subseries: string[];
-  specialties: string[];
+  inserts: string[];
+  parallels: string[];
 }
 
 export interface ValidationResult {
@@ -134,8 +134,8 @@ export async function validateImportData(
   const missingData: MissingReferenceData = {
     brands: [],
     series: [],
-    subseries: [],
-    specialties: [],
+    inserts: [],
+    parallels: [],
   };
   const preview: any[] = [];
   
@@ -147,13 +147,13 @@ export async function validateImportData(
   // Load existing reference data
   const existingBrands = await db.select().from(brands);
   const existingSeries = await db.select().from(series);
-  const existingSubseries = await db.select().from(subseries);
-  const existingSpecialties = await db.select().from(specialties);
+  const existingInsert = await db.select().from(inserts);
+  const existingParallels = await db.select().from(parallels);
   
   const brandNames = new Set(existingBrands.map(b => b.name.toLowerCase()));
   const seriesNames = new Set(existingSeries.map(s => s.name.toLowerCase()));
-  const subseriesNames = new Set(existingSubseries.map(s => s.name.toLowerCase()));
-  const specialtyNames = new Set(existingSpecialties.map(s => s.name.toLowerCase()));
+  const insertsNames = new Set(existingInsert.map(s => s.name.toLowerCase()));
+  const parallelNames = new Set(existingParallels.map(s => s.name.toLowerCase()));
   
   // Create mapping lookup
   const fieldMap = new Map(mappings.map(m => [m.dbField, m.excelColumn]));
@@ -212,17 +212,17 @@ export async function validateImportData(
       }
     }
     
-    // Check subseries exists
-    if (cardData.subseriesId && !subseriesNames.has(cardData.subseriesId.toLowerCase())) {
-      if (!missingData.subseries.includes(cardData.subseriesId)) {
-        missingData.subseries.push(cardData.subseriesId);
+    // Check inserts exists
+    if (cardData.insertId && !insertsNames.has(cardData.insertId.toLowerCase())) {
+      if (!missingData.inserts.includes(cardData.insertId)) {
+        missingData.inserts.push(cardData.insertId);
       }
     }
     
     // Check specialty exists
-    if (cardData.specialtyId && !specialtyNames.has(cardData.specialtyId.toLowerCase())) {
-      if (!missingData.specialties.includes(cardData.specialtyId)) {
-        missingData.specialties.push(cardData.specialtyId);
+    if (cardData.parallelId && !parallelNames.has(cardData.parallelId.toLowerCase())) {
+      if (!missingData.parallels.includes(cardData.parallelId)) {
+        missingData.parallels.push(cardData.parallelId);
       }
     }
     
@@ -235,8 +235,8 @@ export async function validateImportData(
   const hasMissingData = 
     missingData.brands.length > 0 ||
     missingData.series.length > 0 ||
-    missingData.subseries.length > 0 ||
-    missingData.specialties.length > 0;
+    missingData.inserts.length > 0 ||
+    missingData.parallels.length > 0;
   
   return {
     valid: errors.length === 0 && !hasMissingData,
@@ -259,13 +259,13 @@ export async function importCards(
   // Load reference data for ID lookup
   const existingBrands = await db.select().from(brands);
   const existingSeries = await db.select().from(series);
-  const existingSubseries = await db.select().from(subseries);
-  const existingSpecialties = await db.select().from(specialties);
+  const existingInsert = await db.select().from(inserts);
+  const existingParallels = await db.select().from(parallels);
   
   const brandMap = new Map(existingBrands.map(b => [b.name.toLowerCase(), b.id]));
   const seriesMap = new Map(existingSeries.map(s => [s.name.toLowerCase(), s.id]));
-  const subseriesMap = new Map(existingSubseries.map(s => [s.name.toLowerCase(), s.id]));
-  const specialtyMap = new Map(existingSpecialties.map(s => [s.name.toLowerCase(), s.id]));
+  const insertsMap = new Map(existingInsert.map(s => [s.name.toLowerCase(), s.id]));
+  const specialtyMap = new Map(existingParallels.map(s => [s.name.toLowerCase(), s.id]));
   
   const fieldMap = new Map(mappings.map(m => [m.dbField, m.excelColumn]));
   
@@ -282,10 +282,10 @@ export async function importCards(
         cardData.brandId = brandMap.get(value.toLowerCase()) || null;
       } else if (dbField === 'seriesId' && value) {
         cardData.seriesId = seriesMap.get(value.toLowerCase()) || null;
-      } else if (dbField === 'subseriesId' && value) {
-        cardData.subseriesId = subseriesMap.get(value.toLowerCase()) || null;
-      } else if (dbField === 'specialtyId' && value) {
-        cardData.specialtyId = specialtyMap.get(value.toLowerCase()) || null;
+      } else if (dbField === 'insertId' && value) {
+        cardData.insertId = insertsMap.get(value.toLowerCase()) || null;
+      } else if (dbField === 'parallelId' && value) {
+        cardData.parallelId = specialtyMap.get(value.toLowerCase()) || null;
       } else if (dbField === 'autograph') {
         cardData.autograph = value.toLowerCase() === 'yes' || value.toLowerCase() === 'true';
       } else if (dbField === 'numbered') {

@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE cards\n  ADD COLUMN teamId INT AFTER playerName,\n  ADD COLUMN memorabilia TEXT AFTER parallelId,\n  ADD COLUMN autographTypeId INT AFTER isAutograph,\n  ADD COLUMN isGraded INT NOT NULL DEFAULT 0 AFTER numberedCurrent,\n  ADD COLUMN gradeCompanyId INT AFTER isGraded,\n  ADD COLUMN gradeSerialNumber VARCHAR(40) AFTER gradeCompanyId;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3XqwESMKXPvvqZG.root --database nropuiaqHNqyb4z6qDyenL --execute ALTER TABLE cards\n  ADD COLUMN teamId INT AFTER playerName,\n  ADD COLUMN memorabilia TEXT AFTER parallelId,\n  ADD COLUMN autographTypeId INT AFTER isAutograph,\n  ADD COLUMN isGraded INT NOT NULL DEFAULT 0 AFTER numberedCurrent,\n  ADD COLUMN gradeCompanyId INT AFTER isGraded,\n  ADD COLUMN gradeSerialNumber VARCHAR(40) AFTER gradeCompanyId;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'isgraded' in 'cards'"
+  ]
+}

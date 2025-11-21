@@ -26,8 +26,8 @@ interface ValidationResult {
   missingData: {
     brands: string[];
     series: string[];
-    subseries: string[];
-    specialties: string[];
+    inserts: string[];
+    parallels: string[];
   };
   preview: any[];
 }
@@ -36,8 +36,8 @@ const DB_FIELDS = [
   { value: "playerName", label: "Player Name", required: true },
   { value: "brandId", label: "Brand", required: false },
   { value: "seriesId", label: "Series", required: false },
-  { value: "subseriesId", label: "Subseries", required: false },
-  { value: "specialtyId", label: "Specialty", required: false },
+  { value: "insertId", label: "Insert", required: false },
+  { value: "parallelId", label: "Specialty", required: false },
   { value: "season", label: "Season / Year", required: true },
   { value: "cardNumber", label: "Card Number", required: true },
   { value: "autograph", label: "Autograph", required: false },
@@ -329,8 +329,8 @@ export default function ExcelImportWizard({
             
             {(validationResult.missingData.brands.length > 0 ||
               validationResult.missingData.series.length > 0 ||
-              validationResult.missingData.subseries.length > 0 ||
-              validationResult.missingData.specialties.length > 0) && (
+              validationResult.missingData.inserts.length > 0 ||
+              validationResult.missingData.parallels.length > 0) && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -347,14 +347,14 @@ export default function ExcelImportWizard({
                       <strong>Series:</strong> {validationResult.missingData.series.join(", ")}
                     </div>
                   )}
-                  {validationResult.missingData.subseries.length > 0 && (
+                  {validationResult.missingData.inserts.length > 0 && (
                     <div className="mb-2">
-                      <strong>Subseries:</strong> {validationResult.missingData.subseries.join(", ")}
+                      <strong>Insert:</strong> {validationResult.missingData.inserts.join(", ")}
                     </div>
                   )}
-                  {validationResult.missingData.specialties.length > 0 && (
+                  {validationResult.missingData.parallels.length > 0 && (
                     <div>
-                      <strong>Specialties:</strong> {validationResult.missingData.specialties.join(", ")}
+                      <strong>Parallels:</strong> {validationResult.missingData.parallels.join(", ")}
                     </div>
                   )}
                 </AlertDescription>

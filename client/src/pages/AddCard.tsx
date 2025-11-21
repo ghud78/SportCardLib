@@ -36,8 +36,8 @@ export default function AddCard() {
   const [brandId, setBrandId] = useState<number | null>(null);
   const [previousBrandId, setPreviousBrandId] = useState<number | null>(null);
   const [seriesId, setSeriesId] = useState<number | null>(null);
-  const [subseriesId, setSubseriesId] = useState<number | null>(null);
-  const [specialtyId, setSpecialtyId] = useState<number | null>(null);
+  const [insertId, setInsertId] = useState<number | null>(null);
+  const [parallelId, setSpecialtyId] = useState<number | null>(null);
   const [season, setSeason] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [isAutograph, setIsAutograph] = useState(false);
@@ -63,29 +63,29 @@ export default function AddCard() {
     enabled: isAuthenticated,
   });
 
-  const { data: subseries } = trpc.subseries.list.useQuery(undefined, {
+  const { data: inserts } = trpc.inserts.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
     // Filter series by selected brand
   const filteredSeries = series?.filter((s) => !s.brandId || s.brandId === brandId);
 
-  // Filter subseries by selected series
-  const filteredSubseries = subseries?.filter((sub) => !sub.seriesId || sub.seriesId === seriesId);
+  // Filter inserts by selected series
+  const filteredInsert = inserts?.filter((sub) => !sub.seriesId || sub.seriesId === seriesId);
 
-  const { data: specialties } = trpc.specialties.list.useQuery(undefined, {
+  const { data: parallels } = trpc.parallels.list.useQuery(undefined, {
     enabled: isAuthenticated,
   });
 
   // Set "Base" as default specialty
   useEffect(() => {
-    if (!specialtyId && specialties) {
-      const baseSpecialty = specialties.find((s) => s.name === "Base");
+    if (!parallelId && parallels) {
+      const baseSpecialty = parallels.find((s) => s.name === "Base");
       if (baseSpecialty) {
         setSpecialtyId(baseSpecialty.id);
       }
     }
-  }, [specialties, specialtyId]);
+  }, [parallels, parallelId]);
 
   const createCardMutation = trpc.cards.create.useMutation({
     onSuccess: () => {
@@ -145,8 +145,8 @@ export default function AddCard() {
       playerName: playerName.trim(),
       brandId: brandId || undefined,
       seriesId: seriesId || undefined,
-      subseriesId: subseriesId || undefined,
-      specialtyId: specialtyId || undefined,
+      insertId: insertId || undefined,
+      parallelId: parallelId || undefined,
       season: season.trim(),
       cardNumber: cardNumber.trim(),
       isAutograph,
@@ -268,7 +268,7 @@ export default function AddCard() {
                     onValueChange={(v) => {
                       const newSeriesId = v ? parseInt(v) : null;
                       if (newSeriesId !== seriesId) {
-                        setSubseriesId(null);
+                        setInsertId(null);
                       }
                       setSeriesId(newSeriesId);
                     }}
@@ -287,13 +287,13 @@ export default function AddCard() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="subseries">Subseries (Optional)</Label>
-                  <Select value={subseriesId?.toString()} onValueChange={(v) => setSubseriesId(v ? parseInt(v) : null)}>
+                  <Label htmlFor="inserts">Insert (Optional)</Label>
+                  <Select value={insertId?.toString()} onValueChange={(v) => setInsertId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
-                      <SelectValue placeholder={seriesId ? "Select subseries (optional)" : "Select series first"} />
+                      <SelectValue placeholder={seriesId ? "Select inserts (optional)" : "Select series first"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {filteredSubseries?.map((sub) => (
+                      {filteredInsert?.map((sub) => (
                         <SelectItem key={sub.id} value={sub.id.toString()}>
                           {sub.name}
                         </SelectItem>
@@ -304,12 +304,12 @@ export default function AddCard() {
 
                 <div className="space-y-2">
                   <Label htmlFor="specialty">Specialty (Optional)</Label>
-                  <Select value={specialtyId?.toString()} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
+                  <Select value={parallelId?.toString()} onValueChange={(v) => setSpecialtyId(v ? parseInt(v) : null)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select specialty (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      {specialties?.map((specialty) => (
+                      {parallels?.map((specialty) => (
                         <SelectItem key={specialty.id} value={specialty.id.toString()}>
                           {specialty.name}
                         </SelectItem>
